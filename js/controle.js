@@ -38,8 +38,9 @@ formReceita.addEventListener("submit", function(e) {
 
     const descricao = document.getElementById("descricao-receita").value;
     const valor = parseFloat(document.getElementById("valor-receita").value);
+    const data = document.getElementById("data-receita").value;
 
-    receitas.push({ descricao, valor });
+    receitas.push({ descricao, valor, data });
 
     formReceita.reset();
     atualizarResumo();
