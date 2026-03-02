@@ -2,47 +2,63 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle - Fluxy</title>
     <link rel="stylesheet" href="css/controle.css">
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Controle de Despesas</h1>
-            <p>Organize suas finanças de forma leve e simples</p>
-        </header>
-
-        <section class="card resumo">
-            <h2>Resumo do Mês</h2>
-            <div class="valores">
-                <div>
-                    <span>Receitas</span>
-                    <strong>R$ 0,00</strong>
-                </div>
-                <div>
-                    <span>Despesas</span>
-                    <strong>R$ 0,00</strong>
-                </div>
-                <div>
-                    <span>Saldo</span>
-                    <strong>R$ 0,00</strong>
-                </div>
-            </div>
-        </section>
-
-        <section class="card adicionar">
-            <h2>Adicionar Nova Despesa</h2>
-            <form>
-                <input type="text" placeholder="Descrição" required>
-                <input type="number" placeholder="Valor" required>
-                <input type="date" required>
-                <button type="submit">Salvar</button>
-            </form>
-        </section>
-
+<div class="container">
+    <header class="topo">
+    <div class="titulo">
+        <h1>Controle de Despesas</h1>
+        <p>Organize suas finanças de forma leve e simples</p>
     </div>
 
+    <a href="registros.html" class="btn-registros">
+        📋 Ver Despesas
+    </a>
+</header>
+
+    <section class="card resumo">
+        <h2>Resumo do Mês</h2>
+        <div class="valores">
+            <div>
+                <span>Receitas</span>
+                <strong id="total-receitas">R$ 0,00</strong>
+            </div>
+            <div>
+                <span>Despesas</span>
+                <strong id="total-despesas">R$ 0,00</strong>
+            </div>
+            <div>
+                <span>Saldo</span>
+                <strong id="saldo">R$ 0,00</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- FORMULÁRIO DE RECEITA -->
+    <section class="card adicionar">
+        <h2>Adicionar Receita</h2>
+        <form id="form-receita">
+            <input type="text" id="descricao-receita" placeholder="Descrição" required>
+            <input type="number" id="valor-receita" placeholder="Valor" required>
+            <button type="submit">Salvar Receita</button>
+        </form>
+    </section>
+
+    <!-- FORMULÁRIO DE DESPESA -->
+    <section class="card adicionar">
+        <h2>Adicionar Despesa</h2>
+        <form id="form-despesa">
+            <input type="text" id="descricao-despesa" placeholder="Descrição" required>
+            <input type="number" id="valor-despesa" placeholder="Valor" required>
+            <input type="date" id="data-despesa" required>
+            <button type="submit">Salvar Despesa</button>
+        </form>
+    </section>
+</div>
+
+<script src="js/controle.js"></script>
 </body>
 </html>

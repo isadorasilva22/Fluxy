@@ -1,0 +1,92 @@
+body {
+    background: linear-gradient(135deg, #ffe4ec, #fff5cc);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.btn-voltar {
+    background-color: #f8c8dc;
+    color: #8a3a5a;
+    padding: 10px 18px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+    white-space: nowrap;
+}
+
+.btn-voltar:hover {
+    background-color: #f4a9c5;
+}
+
+.container {
+    width: 90%;
+    max-width: 700px;
+}
+
+.topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+}
+
+.titulo h1 {
+    color: #c94f7c;
+    margin-bottom: 5px;
+}
+
+.titulo p {
+    color: #8a6d3b;
+    font-size: 0.9rem;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    padding: 25px;
+    border-radius: 18px;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.card h2 {
+    color: #c94f7c;
+    margin-bottom: 15px;
+}
+
+ul {
+    list-style: none;
+    margin-top: 15px;
+    padding: 0;
+}
+
+li {
+    padding: 12px 15px;
+    background-color: #fff5f9;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.2s;
+}
+
+li:hover {
+    transform: scale(1.02);
+    background-color: #ffeaf2;
+}
+
+.valor-receita {
+    color: #3a7d44;
+    font-weight: bold;
+}
+
+.valor-despesa {
+    color: #c94f7c;
+    font-weight: bold;
+}
