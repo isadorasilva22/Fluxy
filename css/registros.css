@@ -1,9 +1,43 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
 body {
     background: linear-gradient(135deg, #ffe4ec, #fff5cc);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+}
+
+/* ================= CONTAINER ================= */
+
+.container {
+    width: 95%;
+    max-width: 900px;
+}
+
+/* ================= HEADER ================= */
+
+.topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 30px 0;
+    gap: 20px;
+}
+
+.titulo h1 {
+    color: #c94f7c;
+    margin-bottom: 5px;
+}
+
+.titulo p {
+    color: #8a6d3b;
+    font-size: 0.9rem;
 }
 
 .btn-voltar {
@@ -19,33 +53,13 @@ body {
 
 .btn-voltar:hover {
     background-color: #f4a9c5;
+    transform: translateY(-2px);
 }
 
-.container {
-    width: 90%;
-    max-width: 700px;
-}
-
-.topo {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    gap: 20px;
-}
-
-.titulo h1 {
-    color: #c94f7c;
-    margin-bottom: 5px;
-}
-
-.titulo p {
-    color: #8a6d3b;
-    font-size: 0.9rem;
-}
+/* ================= CARD ================= */
 
 .card {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     padding: 25px;
     border-radius: 18px;
@@ -55,38 +69,141 @@ body {
 
 .card h2 {
     color: #c94f7c;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
 }
 
-ul {
-    list-style: none;
-    margin-top: 15px;
-    padding: 0;
-}
+/* ================= FILTRO ================= */
 
-li {
-    padding: 12px 15px;
-    background-color: #fff5f9;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    font-size: 0.95rem;
+.filtro {
+    margin-bottom: 20px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filtro input {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #f5c6d6;
+    outline: none;
+}
+
+.btn-limpar {
+    background-color: #f4c542;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
     transition: 0.2s;
 }
 
-li:hover {
-    transform: scale(1.02);
-    background-color: #ffeaf2;
+.btn-limpar:hover {
+    background-color: #e6b830;
+    transform: translateY(-1px);
 }
 
-.valor-receita {
-    color: #3a7d44;
+/* ================= TABELA ================= */
+
+.tabela {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabela th {
+    background-color: #f8c8dc;
+    color: #8a3a5a;
+    padding: 12px;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.tabela td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+
+.tabela tr:hover {
+    background-color: #fff5f9;
+}
+
+/* ================= VALORES ================= */
+
+.valor-positivo {
+    color: #2e8b57;
     font-weight: bold;
 }
 
-.valor-despesa {
+.valor-negativo {
+    color: #d9534f;
+    font-weight: bold;
+}
+
+/* ================= LINHA TOTAL ================= */
+
+.linha-total {
+    background-color: #fdf2f7;
+    font-weight: bold;
+}
+
+.linha-total td {
+    border-top: 2px solid #f8c8dc;
+    padding-top: 14px;
+}
+
+/* ================= LINHA VAZIA ================= */
+
+.linha-vazia td {
+    text-align: center;
+    padding: 25px;
+    color: #777;
+    font-style: italic;
+}
+
+/* ================= BADGE SEM DATA ================= */
+
+.badge-sem-data {
+    background-color: #ffe5ec;
     color: #c94f7c;
-    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* ================= RESPONSIVIDADE ================= */
+
+@media (max-width: 768px) {
+
+    .topo {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .container {
+        width: 95%;
+    }
+
+    .tabela th,
+    .tabela td {
+        font-size: 0.8rem;
+        padding: 8px;
+    }
+}
+
+/* ===== Animação ao trocar filtro ===== */
+
+.tabela-animada {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tabela-animada.mostrar {
+    opacity: 1;
+    transform: translateY(0);
 }
