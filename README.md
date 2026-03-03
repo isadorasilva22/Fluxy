@@ -35,7 +35,6 @@ A proposta é oferecer uma interface amigável, leve e intuitiva para organizaç
 |   ├── controle.css 
 |   └── registros.css
 ├──js
-|   ├── index.js 
 |   ├── controle.js 
 |   └── registros.js
 ├──view
