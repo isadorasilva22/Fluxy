@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - FLuxy</title>
-    <link rel="stylesheet" href="css/index.css">
-    <link rel='icon' type="image/icon" href="view/home.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel='icon' type="image/icon" href="{{ url_for('static', filename='src/home.png') }}">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
             </p>
 
             <div class="buttons">
-                <a href="controle.html" class="btn-primary">Começar agora</a>
+                <a href="{{ url_for('templates', filename='controle.html') }}" class="btn-primary">Começar agora</a>
                 <a href="https://github.com/isadorasilva22/Fluxy/tree/dev?tab=readme-ov-file#fluxy" class="btn-secondary">Saiba mais</a>
             </div>
         </div>
