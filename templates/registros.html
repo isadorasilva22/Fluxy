@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Despesas - Fluxy</title>
-    <link rel="stylesheet" href="css/registros.css">
-    <link rel='icon' type="image/icon" href="view/despesas.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='registros.css') }}">
+    <link rel='icon' type="image/icon" href="{{ url_for('static', filename='src/despesas') }}">
 </head>
 <body>
 
@@ -16,7 +16,7 @@
             <p>Visualize todas as receitas e despesas cadastradas</p>
         </div>
 
-        <a href="controle.html" class="btn-voltar">
+        <a href="{{ url_for('controle') }}" class="btn-voltar">
             Voltar
         </a>
     </header>
@@ -64,6 +64,6 @@
 
 </div>
 
-<script src="js/registros.js"></script>
+<script src="{{ url_for('static', filename='js/registros.js') }}"></script>
 </body>
 </html>

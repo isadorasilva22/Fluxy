@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Controle - Fluxy</title>
-    <link rel="stylesheet" href="css/controle.css">
-    <link rel='icon' type="image/icon" href="view/controle.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='controle.css') }}">
+    <link rel='icon' type="image/icon" href="{{ url_for('static', filename='src/controle') }}">
 </head>
 <body>
 
@@ -15,11 +15,11 @@
         <p>Organize suas finanças de forma leve e simples</p>
     </div>
     <div class="botoes">
-        <a href="index.html" class="btn-registros">
+        <a href="{{ url_for('index') }}" class="btn-registros">
         🏠 Home
         </a>
 
-        <a href="registros.html" class="btn-registros">
+        <a href="{{ url_for('registros') }}" class="btn-registros">
         📋 Ver Despesas
         </a>
     </div>
@@ -70,6 +70,6 @@
 </div>
 </div>
 
-<script src="js/controle.js"></script>
+<script src="{{ url_for('static', filename='js/registros.js') }}"></script>
 </body>
 </html>
