@@ -1,11 +1,13 @@
 // ================= DADOS =================
 
-function obterReceitas() {
-    return JSON.parse(localStorage.getItem("receitas")) || [];
+async function obterReceitas() {
+    const resposta = await fetch("http://127.0.0.1:5000/receitas");
+    return await resposta.json();
 }
 
-function obterDespesas() {
-    return JSON.parse(localStorage.getItem("despesas")) || [];
+async function obterDespesas() {
+    const resposta = await fetch("http://127.0.0.1:5000/despesas");
+    return await resposta.json();
 }
 
 // ================= ELEMENTOS =================
@@ -78,13 +80,13 @@ if (btnLimpar) {
 
 // ================= RENDERIZAÇÃO =================
 
-function carregarRegistros(animar = false) {
+async function carregarRegistros(animar = false) {
 
     listaReceitas.innerHTML = "";
     listaDespesas.innerHTML = "";
 
-    const receitas = obterReceitas();
-    const despesas = obterDespesas();
+    const receitas = await obterReceitas();
+    const despesas = await obterDespesas();
     const mesSelecionado = filtroMes ? filtroMes.value : "";
 
     let totalReceitas = 0;
