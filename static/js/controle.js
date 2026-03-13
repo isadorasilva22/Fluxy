@@ -33,6 +33,24 @@ async function atualizarResumo() {
     saldoEl.textContent = formatarMoeda(saldo);
 }
 
+// Converter texto em valor
+
+function validarValor(valorTexto) {
+
+    if (!valorTexto) return null;
+
+    // troca vírgula por ponto
+    const valorNormalizado = valorTexto.replace(",", ".");
+
+    const numero = Number(valorNormalizado);
+
+    if (isNaN(numero)) {
+        return null;
+    }
+
+    return numero;
+}
+
 // Formatar moeda
 function formatarMoeda(valor) {
     return valor.toLocaleString("pt-BR", {
@@ -46,7 +64,14 @@ formReceita.addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const descricao = document.getElementById("descricao-receita").value;
-    const valor = parseFloat(document.getElementById("valor-receita").value);
+    const valorTexto = document.getElementById("valor-receita").value;
+    const valor = validarValor(valorTexto);
+
+    if (valor === null) {
+        alert("Digite um valor numérico válido");
+        return;
+    }
+    
     const data = document.getElementById("data-receita").value;
 
     await fetch("http://127.0.0.1:5000/receitas", {
@@ -66,7 +91,13 @@ formDespesa.addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const descricao = document.getElementById("descricao-despesa").value;
-    const valor = parseFloat(document.getElementById("valor-despesa").value);
+    const valorTexto = document.getElementById("valor-despesa").value;
+    const valor = validarValor(valorTexto);
+
+    if (valor === null) {
+        alert("Digite um valor numérico válido");
+        return;
+    }
     const data = document.getElementById("data-despesa").value;
 
     await fetch("http://127.0.0.1:5000/despesas", {
