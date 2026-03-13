@@ -118,8 +118,8 @@ receitas.forEach(receita => {
         <td class="valor-positivo">${formatarMoeda(receita.valor)}</td>
 
         <td>
-        <button onclick="editarReceita(${receita.id})">✏️</button>
-        <button onclick="excluirReceita(${receita.id})">🗑️</button>
+        <i class="fa-solid fa-pen-to-square icon editar" onclick="editarReceita(${receita.id})"></i>
+        <i class="fa-solid fa-trash icon excluir" onclick="excluirReceita(${receita.id})"></i>
         </td>
         `;
 
@@ -139,8 +139,9 @@ receitas.forEach(receita => {
         trTotalReceita.classList.add("linha-total");
 
         trTotalReceita.innerHTML = `
-            <td colspan="2">Total</td>
-            <td class="total-positivo">${formatarMoeda(totalReceitas)}</td>
+        <td colspan="2">Total</td>
+        <td class="total-positivo">${formatarMoeda(totalReceitas)}</td>
+        <td></td>
         `;
 
         listaReceitas.appendChild(trTotalReceita);
@@ -165,8 +166,8 @@ receitas.forEach(receita => {
         <td class="valor-positivo">${formatarMoeda(despesa.valor)}</td>
 
         <td>
-        <button onclick="editarDespesa(${despesa.id})">✏️</button>
-        <button onclick="excluirDespesa(${despesa.id})">🗑️</button>
+        <i class="fa-solid fa-pen-to-square icon editar" onclick="editarDespesa(${despesa.id})"></i>
+        <i class="fa-solid fa-trash icon excluir" onclick="excluirDespesa(${despesa.id})"></i>
         </td>
         `;
 
@@ -187,6 +188,7 @@ receitas.forEach(receita => {
         trTotalDespesa.innerHTML = `
             <td colspan="2">Total</td>
             <td class="total-negativo">${formatarMoeda(totalDespesas)}</td>
+            <td></td>
         `;
 
         listaDespesas.appendChild(trTotalDespesa);

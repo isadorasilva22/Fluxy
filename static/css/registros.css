@@ -131,6 +131,27 @@ body {
     background-color: #fff5f9;
 }
 
+.acoes {
+  text-align: center;
+}
+
+.icon {
+  cursor: pointer;
+  font-size: 18px;
+  margin: 0 6px;
+  transition: 0.2s;
+}
+
+.icon.editar:hover {
+  color: #4CAF50;
+  transform: scale(1.2);
+}
+
+.icon.excluir:hover {
+  color: #E53935;
+  transform: scale(1.2);
+}
+
 /* ================= VALORES ================= */
 
 .valor-positivo {
