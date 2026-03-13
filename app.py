@@ -75,6 +75,32 @@ def adicionar_receita():
         "data": str(nova[3])
     })
 
+@app.route("/receitas/<int:id>", methods=["PUT"])
+def editar_receita(id):
+    data = request.json
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE receitas
+        SET descricao=%s, valor=%s, data=%s
+        WHERE id=%s
+    """, (data["descricao"], data["valor"], data["data"], id))
+
+    conn.commit()
+    cur.close()
+    return jsonify({"mensagem": "Receita atualizada"})
+
+
+@app.route("/receitas/<int:id>", methods=["DELETE"])
+def excluir_receita(id):
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM receitas WHERE id=%s", (id,))
+    conn.commit()
+
+    return jsonify({"mensagem": "Receita excluída"})
+
+
 # DESPESAS
 
 @app.route("/despesas", methods=["GET"])
@@ -117,6 +143,35 @@ def adicionar_despesa():
         "data": str(nova[3])
     })
 
+@app.route("/despesas/<int:id>", methods=["PUT"])
+def editar_despesa(id):
+
+    data = request.json
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE despesas
+        SET descricao=%s, valor=%s, data=%s
+        WHERE id=%s
+    """, (data["descricao"], data["valor"], data["data"], id))
+
+    conn.commit()
+    cur.close()
+
+    return jsonify({"mensagem": "Despesa atualizada"})
+
+@app.route("/despesas/<int:id>", methods=["DELETE"])
+def excluir_despesa(id):
+
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM despesas WHERE id=%s", (id,))
+    conn.commit()
+    cur.close()
+
+    return jsonify({"mensagem": "Despesa excluída"})
+
+###
 
 if __name__ == "__main__":
     app.run(debug=True)

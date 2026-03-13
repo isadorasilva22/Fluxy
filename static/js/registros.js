@@ -96,10 +96,11 @@ async function carregarRegistros(animar = false) {
 
     if (animar) {
     animarTabelas();
-}
+    }
 
-    // ===== RECEITAS =====
-    receitas.forEach(receita => {
+// ===== RECEITAS =====
+
+receitas.forEach(receita => {
 
         if (mesSelecionado) {
             if (!receita.data || !receita.data.startsWith(mesSelecionado)) {
@@ -112,10 +113,16 @@ async function carregarRegistros(animar = false) {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-            <td>${formatarData(receita.data)}</td>
-            <td>${receita.descricao}</td>
-            <td class="valor-positivo">${formatarMoeda(receita.valor)}</td>
+        <td>${formatarData(receita.data)}</td>
+        <td>${receita.descricao}</td>
+        <td class="valor-positivo">${formatarMoeda(receita.valor)}</td>
+
+        <td>
+        <button onclick="editarReceita(${receita.id})">✏️</button>
+        <button onclick="excluirReceita(${receita.id})">🗑️</button>
+        </td>
         `;
+
 
         listaReceitas.appendChild(tr);
         totalReceitas += Number(receita.valor);
@@ -153,9 +160,14 @@ async function carregarRegistros(animar = false) {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-            <td>${formatarData(despesa.data)}</td>
-            <td>${despesa.descricao}</td>
-            <td class="valor-negativo">${formatarMoeda(despesa.valor)}</td>
+        <td>${formatarData(despesa.data)}</td>
+        <td>${despesa.descricao}</td>
+        <td class="valor-positivo">${formatarMoeda(despesa.valor)}</td>
+
+        <td>
+        <button onclick="editarDespesa(${despesa.id})">✏️</button>
+        <button onclick="excluirDespesa(${despesa.id})">🗑️</button>
+        </td>
         `;
 
         listaDespesas.appendChild(tr);
@@ -185,6 +197,83 @@ async function carregarRegistros(animar = false) {
         animarTabela(tabelaReceitas);
         animarTabela(tabelaDespesas);
     }
+}
+
+// ============ AÇÕES RECEITAS ================== //
+
+async function excluirReceita(id) {
+
+    if (!confirm("Deseja excluir este registro?")) return;
+
+    const response = await fetch(`/receitas/${id}`, {
+        method: "DELETE"
+    });
+
+    if (response.ok) {
+        carregarRegistros(true);
+    } else {
+        alert("Erro ao excluir registro");
+    }
+}
+
+
+async function editarReceita(id) {
+
+    const descricao = prompt("Nova descrição:");
+    const valor = prompt("Novo valor:");
+    const data = prompt("Nova data (AAAA-MM-DD):");
+
+    await fetch(`/receitas/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            descricao,
+            valor,
+            data
+        })
+    });
+
+    carregarRegistros(true);
+}
+
+// ============ AÇÕES DESPESAS ================== //
+
+async function excluirDespesa(id) {
+
+    if (!confirm("Deseja excluir este registro?")) return;
+
+    const response = await fetch(`/despesas/${id}`, {
+        method: "DELETE"
+    });
+
+    if (response.ok) {
+        carregarRegistros(true);
+    } else {
+        alert("Erro ao excluir registro");
+    }
+}
+
+async function editarDespesa(id) {
+
+    const descricao = prompt("Nova descrição:");
+    const valor = prompt("Novo valor:");
+    const data = prompt("Nova data (AAAA-MM-DD):");
+
+    await fetch(`/despesas/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            descricao,
+            valor,
+            data
+        })
+    });
+
+    carregarRegistros(true);
 }
 
 // ================= INICIALIZAÇÃO =================
