@@ -51,6 +51,30 @@ def listar_receitas():
 
     return jsonify(receitas)
 
+@app.route("/receitas", methods=["POST"])
+def adicionar_receita():
+
+    data = request.json
+
+    cur = conn.cursor()
+
+    cur.execute(
+        "INSERT INTO receitas (descricao, valor, data) VALUES (%s,%s,%s) RETURNING *",
+        (data["descricao"], data["valor"], data["data"])
+    )
+
+    nova = cur.fetchone()
+
+    conn.commit()
+    cur.close()
+
+    return jsonify({
+        "id": nova[0],
+        "descricao": nova[1],
+        "valor": float(nova[2]),
+        "data": str(nova[3])
+    })
+
 # DESPESAS
 
 @app.route("/despesas", methods=["GET"])

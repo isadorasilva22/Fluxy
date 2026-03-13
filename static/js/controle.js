@@ -1,6 +1,13 @@
-// Carregar dados do localStorage ou iniciar vazio
-let receitas = JSON.parse(localStorage.getItem("receitas")) || [];
-let despesas = JSON.parse(localStorage.getItem("despesas")) || [];
+// Carregar dados da API
+async function obterReceitas() {
+    const resposta = await fetch("http://127.0.0.1:5000/receitas");
+    return await resposta.json();
+}
+
+async function obterDespesas() {
+    const resposta = await fetch("http://127.0.0.1:5000/despesas");
+    return await resposta.json();
+}
 
 // Selecionar elementos
 const totalReceitasEl = document.getElementById("total-receitas");
@@ -11,17 +18,19 @@ const formReceita = document.getElementById("form-receita");
 const formDespesa = document.getElementById("form-despesa");
 
 // Atualizar resumo
-function atualizarResumo() {
-    const totalReceitas = receitas.reduce((acc, item) => acc + item.valor, 0);
-    const totalDespesas = despesas.reduce((acc, item) => acc + item.valor, 0);
+async function atualizarResumo() {
+
+    const receitas = await obterReceitas();
+    const despesas = await obterDespesas();
+
+    const totalReceitas = receitas.reduce((acc, item) => acc + Number(item.valor), 0);
+    const totalDespesas = despesas.reduce((acc, item) => acc + Number(item.valor), 0);
+
     const saldo = totalReceitas - totalDespesas;
 
     totalReceitasEl.textContent = formatarMoeda(totalReceitas);
     totalDespesasEl.textContent = formatarMoeda(totalDespesas);
     saldoEl.textContent = formatarMoeda(saldo);
-
-    localStorage.setItem("receitas", JSON.stringify(receitas));
-    localStorage.setItem("despesas", JSON.stringify(despesas));
 }
 
 // Formatar moeda
@@ -33,28 +42,40 @@ function formatarMoeda(valor) {
 }
 
 // Evento adicionar receita
-formReceita.addEventListener("submit", function(e) {
+formReceita.addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const descricao = document.getElementById("descricao-receita").value;
     const valor = parseFloat(document.getElementById("valor-receita").value);
     const data = document.getElementById("data-receita").value;
 
-    receitas.push({ descricao, valor, data });
+    await fetch("http://127.0.0.1:5000/receitas", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ descricao, valor, data })
+    });
 
     formReceita.reset();
     atualizarResumo();
 });
 
 // Evento adicionar despesa
-formDespesa.addEventListener("submit", function(e) {
+formDespesa.addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const descricao = document.getElementById("descricao-despesa").value;
     const valor = parseFloat(document.getElementById("valor-despesa").value);
     const data = document.getElementById("data-despesa").value;
 
-    despesas.push({ descricao, valor, data });
+    await fetch("http://127.0.0.1:5000/despesas", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ descricao, valor, data })
+    });
 
     formDespesa.reset();
     atualizarResumo();
