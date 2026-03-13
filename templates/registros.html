@@ -67,6 +67,26 @@
 
 </div>
 
+<div id="modal-editar" class="modal">
+  <div class="modal-conteudo">
+    <h3>Editar Registro</h3>
+
+    <label>Descrição</label>
+    <input type="text" id="edit-descricao">
+
+    <label>Valor</label>
+    <input type="number" id="edit-valor">
+
+    <label>Data</label>
+    <input type="date" id="edit-data">
+
+    <div class="modal-botoes">
+      <button id="btn-salvar">Salvar</button>
+      <button id="btn-cancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script src="{{ url_for('static', filename='js/registros.js') }}"></script>
 </body>
 </html>

@@ -1,3 +1,16 @@
+// ================= MODAL =================
+
+const modal = document.getElementById("modal-editar");
+const editDescricao = document.getElementById("edit-descricao");
+const editValor = document.getElementById("edit-valor");
+const editData = document.getElementById("edit-data");
+
+const btnSalvar = document.getElementById("btn-salvar");
+const btnCancelar = document.getElementById("btn-cancelar");
+
+let registroAtual = null;
+let tipoAtual = null;
+
 // ================= DADOS =================
 
 async function obterReceitas() {
@@ -221,23 +234,17 @@ async function excluirReceita(id) {
 
 async function editarReceita(id) {
 
-    const descricao = prompt("Nova descrição:");
-    const valor = prompt("Novo valor:");
-    const data = prompt("Nova data (AAAA-MM-DD):");
+    const receitas = await obterReceitas();
+    const receita = receitas.find(r => r.id === id);
 
-    await fetch(`/receitas/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            descricao,
-            valor,
-            data
-        })
-    });
+    registroAtual = id;
+    tipoAtual = "receita";
 
-    carregarRegistros(true);
+    editDescricao.value = receita.descricao;
+    editValor.value = receita.valor;
+    editData.value = receita.data || "";
+
+    modal.style.display = "flex";
 }
 
 // ============ AÇÕES DESPESAS ================== //
@@ -259,24 +266,52 @@ async function excluirDespesa(id) {
 
 async function editarDespesa(id) {
 
-    const descricao = prompt("Nova descrição:");
-    const valor = prompt("Novo valor:");
-    const data = prompt("Nova data (AAAA-MM-DD):");
+    const despesas = await obterDespesas();
+    const despesa = despesas.find(d => d.id === id);
 
-    await fetch(`/despesas/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            descricao,
-            valor,
-            data
-        })
-    });
+    registroAtual = id;
+    tipoAtual = "despesa";
 
-    carregarRegistros(true);
+    editDescricao.value = despesa.descricao;
+    editValor.value = despesa.valor;
+    editData.value = despesa.data || "";
+
+    modal.style.display = "flex";
 }
+
+// ================= MODAL =================
+
+btnSalvar.onclick = async () => {
+
+    const dados = {
+        descricao: editDescricao.value,
+        valor: editValor.value,
+        data: editData.value
+    };
+
+    if (tipoAtual === "receita") {
+        await fetch(`/receitas/${registroAtual}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dados)
+        });
+    }
+
+    if (tipoAtual === "despesa") {
+        await fetch(`/despesas/${registroAtual}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dados)
+        });
+    }
+
+    modal.style.display = "none";
+    carregarRegistros(true);
+};
+
+btnCancelar.onclick = () => {
+    modal.style.display = "none";
+};
 
 // ================= INICIALIZAÇÃO =================
 

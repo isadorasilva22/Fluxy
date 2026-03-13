@@ -228,3 +228,61 @@ body {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* ===== MODAL ===== */
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.35);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-conteudo {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-conteudo h3 {
+  color: #c94f7c;
+  text-align: center;
+}
+
+.modal input {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.modal-botoes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+#btn-salvar {
+  background: #f8c8dc;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#btn-cancelar {
+  background: #eee;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
