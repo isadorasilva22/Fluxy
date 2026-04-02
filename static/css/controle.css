@@ -58,12 +58,50 @@ body {
     transform: translateY(-2px);
 }
 
+/* ================= ABAS ================= */
+
+.abas {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.aba-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    background: #f8c8dc;
+    color: #8a3a5a;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.aba-btn:hover {
+    background: #f4a9c5;
+}
+
+.aba-btn.ativa {
+    background: #c94f7c;
+    color: white;
+}
+
+/* Conteúdo das abas */
+
+.aba-conteudo {
+    display: none;
+}
+
+.aba-conteudo.ativa {
+    display: block;
+}
+
 /* ================= CARDS ================= */
 
 .card {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
-    padding: 25px;
+    padding: 50px;
     border-radius: 18px;
     margin-bottom: 30px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
@@ -153,7 +191,7 @@ body {
 form {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 20px;
 }
 
 input {
@@ -165,6 +203,19 @@ input {
 }
 
 input:focus {
+    border-color: #f7d774;
+    box-shadow: 0 0 0 3px rgba(247, 215, 116, 0.3);
+}
+
+select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #f5c6d6;
+    outline: none;
+    transition: 0.3s;
+}
+
+select:focus {
     border-color: #f7d774;
     box-shadow: 0 0 0 3px rgba(247, 215, 116, 0.3);
 }

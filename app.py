@@ -128,8 +128,8 @@ def adicionar_despesa():
 
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO despesas (descricao, valor, data) VALUES (%s,%s,%s) RETURNING *",
-        (data["descricao"], data["valor"], data["data"])
+        "INSERT INTO despesas (descricao, valor, data, tipo_id) VALUES (%s,%s,%s,%s) RETURNING *",
+        (data["descricao"], data["valor"], data["data"], data["tipo_id"])
     )
 
     nova = cur.fetchone()
@@ -140,7 +140,8 @@ def adicionar_despesa():
         "id": nova[0],
         "descricao": nova[1],
         "valor": float(nova[2]),
-        "data": str(nova[3])
+        "data": str(nova[3]),
+        "tipo_id":str(nova[4])
     })
 
 @app.route("/despesas/<int:id>", methods=["PUT"])
@@ -170,6 +171,47 @@ def excluir_despesa(id):
     cur.close()
 
     return jsonify({"mensagem": "Despesa excluída"})
+
+# TIPO DE DESPESA
+
+@app.route("/tipos", methods=["POST"])
+def criar_tipo():
+    data = request.json
+    nome = data["nome"]
+
+    cur = conn.cursor()
+    cur.execute("INSERT INTO tipos_despesa (nome) VALUES (%s)", (nome,))
+    conn.commit()
+
+    return {"mensagem": "Tipo criado"}
+
+@app.route("/tipos", methods=["GET"])
+def listar_tipos():
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM tipos_despesa")
+
+    tipos = [
+        {"id": row[0], "nome": row[1]}
+        for row in cur.fetchall()
+    ]
+
+    return jsonify(tipos)
+
+# LIMITES BANCARIOS
+
+@app.route("/limites", methods=["POST"])
+def criar_limite():
+    data = request.json
+
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO limites (tipo_id, valor_limite)
+        VALUES (%s, %s)
+    """, (data["tipo_id"], data["valor"]))
+
+    conn.commit()
+    return {"mensagem": "Limite salvo"}
+
 
 ###
 
