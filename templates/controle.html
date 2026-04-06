@@ -25,6 +25,19 @@
     </div>
 </header>
 
+<!-- ================= ABAS ================= -->
+<div class="abas">
+    <button class="aba-btn ativa" onclick="trocarAba('resumo', this)">
+        📊 Resumo Orçamentário
+    </button>
+    <button class="aba-btn" onclick="trocarAba('limites', this)">
+        💳 Limites e Despesas
+    </button>
+</div>
+
+<!-- ================= ABA 1 ================= -->
+<div id="aba-resumo" class="aba-conteudo ativa">
+
     <section class="card resumo">
         <h2>Resumo Orçamentário</h2>
         <div class="valores">
@@ -61,13 +74,47 @@
         <h2>Adicionar Despesa</h2>
         <form id="form-despesa">
             <input type="text" id="descricao-despesa" placeholder="Descrição" required>
+            <select id="tipo-despesa" required></select>
             <input type="text" id="valor-despesa" placeholder="Valor" required>
+            <select id="forma-pagamento" required></select>
             <input type="date" id="data-despesa" required>
             <button type="submit">Salvar Despesa</button>
         </form>
     </section>
 
 </div>
+</div>
+
+<!-- ================= ABA 2 ================= -->
+<div id="aba-limites" class="aba-conteudo">
+
+    <section class="card">
+        <h2>Cadastro de Tipos de Despesa</h2>
+        <form id="form-tipo">
+            <input type="text" id="novo-tipo" placeholder="Ex: Alimentação, Transporte..." required>
+            <button type="submit">Salvar Tipo</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Formas de Pagamento</h2>
+        <form id="form-forma">
+            <input type="text" id="nova-forma" placeholder="Ex: Crédito, Pix..." required>
+            <button type="submit">Salvar</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Definir Limite</h2>
+        <form id="form-limite">
+            <select id="forma-limite" required>
+                <option value="" disabled selected>Selecione a forma</option>
+            </select>
+            <input type="text" id="valor-limite" placeholder="Limite" required>
+            <button type="submit">Salvar Limite</button>
+        </form>
+    </section>
+
 </div>
 
 <script src="{{ url_for('static', filename='js/controle.js') }}"></script>

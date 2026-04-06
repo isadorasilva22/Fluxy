@@ -124,13 +124,45 @@ def listar_despesas():
 
 @app.route("/despesas", methods=["POST"])
 def adicionar_despesa():
+
     data = request.json
 
+    descricao = data.get("descricao")
+    valor = data.get("valor")
+    data_despesa = data.get("data")
+    tipo_id = data.get("tipo_id")
+
+    forma_pagamento = data.get("forma_pagamento")
+    parcelas = data.get("parcelas", 1)
+    recorrente = data.get("recorrente", False)
+
+    # 🔒 Validações básicas
+    if not descricao or not valor or not data_despesa or not tipo_id:
+        return {"erro": "Campos obrigatórios faltando"}, 400
+
+    if not forma_pagamento:
+        return {"erro": "Forma de pagamento é obrigatória"}, 400
+
+    # 💳 Regra de negócio
+    if forma_pagamento != "credito":
+        parcelas = 1
+
     cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO despesas (descricao, valor, data) VALUES (%s,%s,%s) RETURNING *",
-        (data["descricao"], data["valor"], data["data"])
-    )
+
+    cur.execute("""
+        INSERT INTO despesas 
+        (descricao, valor, data, tipo_id, forma_pagamento, parcelas, recorrente)
+        VALUES (%s,%s,%s,%s,%s,%s,%s)
+        RETURNING *
+    """, (
+        descricao,
+        valor,
+        data_despesa,
+        tipo_id,
+        forma_pagamento,
+        parcelas,
+        recorrente
+    ))
 
     nova = cur.fetchone()
     conn.commit()
@@ -140,20 +172,53 @@ def adicionar_despesa():
         "id": nova[0],
         "descricao": nova[1],
         "valor": float(nova[2]),
-        "data": str(nova[3])
+        "data": str(nova[3]),
+        "tipo_id": str(nova[4]),
+        "forma_pagamento": nova[5],
+        "parcelas": nova[6],
+        "recorrente": nova[7]
     })
 
 @app.route("/despesas/<int:id>", methods=["PUT"])
 def editar_despesa(id):
 
     data = request.json
+
+    descricao = data.get("descricao")
+    valor = data.get("valor")
+    data_despesa = data.get("data")
+    tipo_id = data.get("tipo_id")
+
+    forma_pagamento_id = data.get("forma_pagamento_id")
+    parcelas = data.get("parcelas", 1)
+    recorrente = data.get("recorrente", False)
+
+    # 💳 Regra de negócio
+    if forma_pagamento_id != 1:
+        parcelas = 1
+
     cur = conn.cursor()
 
     cur.execute("""
         UPDATE despesas
-        SET descricao=%s, valor=%s, data=%s
+        SET descricao=%s,
+            valor=%s,
+            data=%s,
+            tipo_id=%s,
+            forma_pagamento=%s,
+            parcelas=%s,
+            recorrente=%s
         WHERE id=%s
-    """, (data["descricao"], data["valor"], data["data"], id))
+    """, (
+        descricao,
+        valor,
+        data_despesa,
+        tipo_id,
+        forma_pagamento_id,
+        parcelas,
+        recorrente,
+        id
+    ))
 
     conn.commit()
     cur.close()
@@ -170,6 +235,78 @@ def excluir_despesa(id):
     cur.close()
 
     return jsonify({"mensagem": "Despesa excluída"})
+
+# TIPO DE DESPESA
+
+@app.route("/tipos", methods=["POST"])
+def criar_tipo():
+    data = request.json
+    nome = data["nome"]
+
+    cur = conn.cursor()
+    cur.execute("INSERT INTO tipos_despesa (nome) VALUES (%s)", (nome,))
+    conn.commit()
+
+    return {"mensagem": "Tipo criado"}
+
+@app.route("/tipos", methods=["GET"])
+def listar_tipos():
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM tipos_despesa")
+
+    tipos = [
+        {"id": row[0], "nome": row[1]}
+        for row in cur.fetchall()
+    ]
+
+    return jsonify(tipos)
+
+
+# FORMAS DE PAGAMENTO
+
+@app.route("/formas-pagamento", methods=["POST"])
+def criar_forma_pagamento():
+    data = request.json
+
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO formas_pagamento (nome) VALUES (%s)",
+        (data["nome"],)
+    )
+
+    conn.commit()
+    cur.close()
+
+    return {"mensagem": "Forma de pagamento criada"}
+
+@app.route("/formas-pagamento", methods=["GET"])
+def listar_formas_pagamento():
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM formas_pagamento ORDER BY nome")
+    dados = cur.fetchall()
+    cur.close()
+
+    return jsonify([
+        {"id": d[0], "nome": d[1]}
+        for d in dados
+    ])
+
+
+# LIMITES BANCARIOS
+
+@app.route("/limites", methods=["POST"])
+def criar_limite():
+    data = request.json
+
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO limites (tipo_id, valor_limite)
+        VALUES (%s, %s)
+    """, (data["tipo_id"], data["valor"]))
+
+    conn.commit()
+    return {"mensagem": "Limite salvo"}
+
 
 ###
 
