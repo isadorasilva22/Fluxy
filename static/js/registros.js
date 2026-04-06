@@ -286,6 +286,8 @@ async function editarReceita(id) {
     editValor.value = receita.valor;
     editData.value = receita.data || "";
 
+    editFormaPagamento.style.display = "none";
+    editGrupoParcelas.style.display = "none";
     modal.style.display = "flex";
 }
 
@@ -320,10 +322,22 @@ async function editarDespesa(id) {
 
     await carregarFormasModal();
 
-    editFormaPagamento.value = despesa.forma_pagamento_id;
+    editFormaPagamento.style.display = "block";
 
-    const forma = formasCache.find(f => f.id == despesa.forma_pagamento_id);
-    atualizarParcelasModal(forma);
+    if (despesa.forma_pagamento_id) {
+        editFormaPagamento.value = despesa.forma_pagamento_id;
+
+        const forma = formasCache.find(f => f.id == despesa.forma_pagamento_id);
+        atualizarParcelasModal(forma);
+
+    } else {
+        const forma = formasCache.find(f => f.nome === despesa.forma);
+
+        if (forma) {
+            editFormaPagamento.value = forma.id;
+            atualizarParcelasModal(forma);
+        }
+    }
 
     modal.style.display = "flex";
 }
@@ -349,7 +363,7 @@ btnSalvar.onclick = async () => {
     if (tipoAtual === "despesa") {
 
         dados.forma_pagamento_id = editFormaPagamento.value;
-        
+
         await fetch(`/despesas/${registroAtual}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
