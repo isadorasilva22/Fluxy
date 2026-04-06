@@ -24,20 +24,6 @@ async function obterLimitesMensais() {
     const res = await fetch("http://127.0.0.1:5000/limites/mensal");
     return await res.json();
 }
-// ================= ABAS =================
-
-function trocarAba(aba, botao) {
-    document.querySelectorAll(".aba-conteudo").forEach(el => {
-        el.classList.remove("ativa");
-    });
-
-    document.querySelectorAll(".aba-btn").forEach(btn => {
-        btn.classList.remove("ativa");
-    });
-
-    document.getElementById("aba-" + aba).classList.add("ativa");
-    botao.classList.add("ativa");
-}
 
 // ================= ELEMENTOS =================
 
@@ -64,45 +50,64 @@ async function atualizarResumo() {
     saldoEl.textContent = formatarMoeda(saldo);
 }
 
+// ================= ABAS =================
+
+function trocarAba(nomeAba, botao) {
+    // Esconde todas as abas
+    const abas = document.querySelectorAll(".aba-conteudo");
+    abas.forEach(aba => aba.classList.remove("ativa"));
+
+    // Remove ativo dos botões
+    const botoes = document.querySelectorAll(".aba-btn");
+    botoes.forEach(btn => btn.classList.remove("ativa"));
+
+    // Mostra a aba selecionada
+    const abaSelecionada = document.getElementById(`aba-${nomeAba}`);
+    if (abaSelecionada) {
+        abaSelecionada.classList.add("ativa");
+    }
+
+    // Ativa o botão clicado
+    if (botao) {
+        botao.classList.add("ativa");
+    }
+}
+
 // ================= TIPOS =================
 
 const formTipo = document.getElementById("form-tipo");
 
-formTipo.addEventListener("submit", async function(e) {
-    e.preventDefault();
+if (formTipo) {
+    formTipo.addEventListener("submit", async function(e) {
+        e.preventDefault();
 
-    const nome = document.getElementById("novo-tipo").value;
+        const nome = document.getElementById("novo-tipo").value;
 
-    if (!nome) {
-        mostrarToast("Digite um nome válido", "warning");
-        return;
-    }
+        if (!nome) {
+            mostrarToast("Digite um nome válido", "warning");
+            return;
+        }
 
-    await fetch("http://127.0.0.1:5000/tipos", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ nome })
+        await fetch("http://127.0.0.1:5000/tipos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome })
+        });
+
+        formTipo.reset();
+        await carregarTipos();
+
+        mostrarToast("Tipo cadastrado com sucesso!", "success");
     });
-
-    formTipo.reset();
-
-    await carregarTipos();
-
-    mostrarToast("Tipo cadastrado com sucesso!", "success");
-});
+}
 
 async function carregarTipos() {
     const tipos = await obterTipos();
-
     const select = document.getElementById("tipo-despesa");
 
-    if (!select) return; 
+    if (!select) return;
 
-    select.innerHTML = `
-    <option value="" disabled selected>Selecione um tipo</option>
-`;
+    select.innerHTML = `<option value="" disabled selected>Selecione um tipo</option>`;
 
     tipos.forEach(tipo => {
         const option = document.createElement("option");
@@ -112,93 +117,97 @@ async function carregarTipos() {
     });
 }
 
-// ================= FORMAS DE PAGAMENTO =================
+// ================= FORMAS =================
 
 const formForma = document.getElementById("form-forma");
+let formasCache = [];
 
 if (formForma) {
     formForma.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const nome = document.getElementById("nova-forma").value;
+        const permite_parcelamento = document.getElementById("permite-parcelamento").checked;
 
         if (!nome) {
             mostrarToast("Digite um nome válido", "warning");
             return;
         }
 
-        if (formas.some(f => f.nome.toLowerCase() === nome.toLowerCase())) {
-            mostrarToast("Forma de pagamento já cadastrada!", "error");
+        if (formasCache.some(f => f.nome.toLowerCase() === nome.toLowerCase())) {
+            mostrarToast("Forma já cadastrada!", "error");
             return;
         }
 
         await fetch("http://127.0.0.1:5000/formas-pagamento", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ nome })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome, permite_parcelamento })
         });
 
         formForma.reset();
         await carregarFormasPagamento();
 
-        mostrarToast("Forma de pagamento cadastrada!", "success");
-
+        mostrarToast("Forma cadastrada!", "success");
     });
 }
 
 async function carregarFormasPagamento() {
-    const formas = await obterFormasPagamento();
+    formasCache = await obterFormasPagamento();
 
     const selectDespesa = document.getElementById("forma-pagamento");
     const selectLimite = document.getElementById("forma-limite");
 
-    // mantém comportamento atual
     if (selectDespesa) {
-        selectDespesa.innerHTML = `
-            <option value="" disabled selected>Forma de pagamento</option>
-        `;
+        selectDespesa.innerHTML = `<option value="" disabled selected>Forma de pagamento</option>`;
     }
 
-    // novo select (limites)
     if (selectLimite) {
-        selectLimite.innerHTML = `
-            <option value="" disabled selected>Selecione a forma</option>
-        `;
+        selectLimite.innerHTML = `<option value="" disabled selected>Selecione a forma</option>`;
     }
 
-    formas.forEach(f => {
-
-        // não muda nada aqui
+    formasCache.forEach(f => {
         if (selectDespesa) {
-            const opt1 = document.createElement("option");
-            opt1.value = f.id;
-            opt1.textContent = f.nome;
-            selectDespesa.appendChild(opt1);
+            const opt = document.createElement("option");
+            opt.value = f.id;
+            opt.textContent = f.nome;
+            selectDespesa.appendChild(opt);
         }
 
-        // novo comportamento
         if (selectLimite) {
-            const opt2 = document.createElement("option");
-            opt2.value = f.id;
-            opt2.textContent = f.nome;
-            selectLimite.appendChild(opt2);
+            const opt = document.createElement("option");
+            opt.value = f.id;
+            opt.textContent = f.nome;
+            selectLimite.appendChild(opt);
         }
+    });
 
+    atualizarParcelas(null);
+}
+
+// ================= PARCELAS =================
+
+function atualizarParcelas(forma) {
+    const grupo = document.getElementById("grupo-parcelas");
+    if (!grupo) return;
+
+    if (forma?.permite_parcelamento) {
+        grupo.style.display = "block";
+    } else {
+        grupo.style.display = "none";
+    }
+}
+
+const selectForma = document.getElementById("forma-pagamento");
+
+if (selectForma) {
+    selectForma.addEventListener("change", () => {
+        const forma = formasCache.find(f => f.id == selectForma.value);
+        atualizarParcelas(forma);
     });
 }
 
 // ================= LIMITES =================
-
-async function verificarLimites() {
-    const resposta = await fetch("http://127.0.0.1:5000/verificar-limites");
-    const alertas = await resposta.json();
-
-    alertas.forEach(alerta => {
-        mostrarToast(`⚠️ Você ultrapassou o limite de ${alerta.tipo}`, "warning");
-    });
-}
 
 const formLimite = document.getElementById("form-limite");
 
@@ -207,28 +216,17 @@ if (formLimite) {
         e.preventDefault();
 
         const forma_pagamento_id = document.getElementById("forma-limite").value;
-        const valorTexto = document.getElementById("valor-limite").value;
-        const valor = validarValor(valorTexto);
+        const valor = validarValor(document.getElementById("valor-limite").value);
 
-        if (!forma_pagamento_id) {
-            mostrarToast("Selecione uma forma de pagamento", "warning");
-            return;
-        }
-
-        if (valor === null) {
-            mostrarToast("Digite um valor válido", "warning");
+        if (!forma_pagamento_id || valor === null) {
+            mostrarToast("Preencha corretamente!", "warning");
             return;
         }
 
         await fetch("http://127.0.0.1:5000/limites", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                forma_pagamento_id,
-                valor
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ forma_pagamento_id, valor })
         });
 
         formLimite.reset();
@@ -236,54 +234,28 @@ if (formLimite) {
     });
 }
 
-async function mostrarLimites() {
-    const dados = await obterLimitesMensais();
-
-    dados.forEach(item => {
-        const porcentagem = (item.gasto / item.limite) * 100;
-
-        console.log(`
-${item.forma}
-Limite: ${formatarMoeda(item.limite)}
-Gasto: ${formatarMoeda(item.gasto)}
-Disponível: ${formatarMoeda(item.disponivel)}
-Uso: ${porcentagem.toFixed(1)}%
-        `);
-
-        if (item.gasto > item.limite) {
-            mostrarToast(`⚠️ Você ultrapassou o limite de ${item.forma}`, "warning");
-        }
-    });
-}
-
 async function renderizarLimites() {
     const container = document.getElementById("limites-container");
     const dados = await obterLimitesMensais();
+
+    if (!container) return;
 
     container.innerHTML = "";
 
     dados.forEach(item => {
         const porcentagem = Math.min((item.gasto / item.limite) * 100, 100);
-            let cor = "#4caf50";
-                if (porcentagem >= 90) {
-                    cor = "#f44336";
-                } else if (porcentagem >= 70) {
-                    cor = "#ff9800";
-                }
+
+        let cor = "#4caf50";
+        if (porcentagem >= 90) cor = "#f44336";
+        else if (porcentagem >= 70) cor = "#ff9800";
+
         const div = document.createElement("div");
 
         div.innerHTML = `
             <h4>${item.forma}</h4>
-            <p>${formatarMoeda(item.gasto)} / ${formatarMoeda(item.limite)}
-            (${porcentagem.toFixed(1)}%)
-            </p>
+            <p>${formatarMoeda(item.gasto)} / ${formatarMoeda(item.limite)} (${porcentagem.toFixed(1)}%)</p>
             <div style="background:#eee; border-radius:10px;">
-                <div style="
-                    width:${porcentagem}%;
-                    background:${cor};
-                    height:10px;
-                    border-radius:10px;
-                "></div>
+                <div style="width:${porcentagem}%; background:${cor}; height:10px; border-radius:10px;"></div>
             </div>
         `;
 
@@ -295,10 +267,7 @@ async function renderizarLimites() {
 
 function validarValor(valorTexto) {
     if (!valorTexto) return null;
-
-    const valorNormalizado = valorTexto.replace(",", ".");
-    const numero = Number(valorNormalizado);
-
+    const numero = Number(valorTexto.replace(",", "."));
     return isNaN(numero) ? null : numero;
 }
 
@@ -309,77 +278,15 @@ function formatarMoeda(valor) {
     });
 }
 
-// ================= EVENTOS =================
+// ================= TOAST =================
 
-// Receita
-formReceita.addEventListener("submit", async function(e) {
-    e.preventDefault();
-
-    const descricao = document.getElementById("descricao-receita").value;
-    const valorTexto = document.getElementById("valor-receita").value;
-    const valor = validarValor(valorTexto);
-
-    if (valor === null) {
-        mostrarToast("Digite um valor numérico válido", "warning");
-        return;
-    }
-
-    const data = document.getElementById("data-receita").value;
-
-    await fetch("http://127.0.0.1:5000/receitas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ descricao, valor, data })
-    });
-
-    formReceita.reset();
-    atualizarResumo();
-});
-
-// Despesa 
-
-formDespesa.addEventListener("submit", async function(e) {
-    e.preventDefault();
-
-    const descricao = document.getElementById("descricao-despesa").value;
-    const valorTexto = document.getElementById("valor-despesa").value;
-    const valor = validarValor(valorTexto);
-
-    if (valor === null) {
-        mostrarToast("Digite um valor numérico válido", "warning");
-        return;
-    }
-
-    const forma_pagamento_id = document.getElementById("forma-pagamento").value;
-    const data = document.getElementById("data-despesa").value;
-    const tipo_id = document.getElementById("tipo-despesa")?.value;
-    
-    if (!tipo_id) {
-        mostrarToast("Selecione um tipo de despesa!", "warning");
-        return;
-    }
-
-    await fetch("http://127.0.0.1:5000/despesas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ descricao, valor, data, tipo_id, forma_pagamento_id })
-    });
-
-    formDespesa.reset();
-
-    await atualizarResumo();
-    await renderizarLimites();
-    verificarLimites();
-});
-
-// ================= NOTIFICAÇÕES =================
-
-function mostrarToast(mensagem, tipo = "success") {
+function mostrarToast(msg, tipo = "success") {
     const container = document.getElementById("toast-container");
+    if (!container) return;
 
     const toast = document.createElement("div");
     toast.className = `toast ${tipo}`;
-    toast.textContent = mensagem;
+    toast.textContent = msg;
 
     container.appendChild(toast);
 
@@ -390,6 +297,60 @@ function mostrarToast(mensagem, tipo = "success") {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
+// ================= EVENTOS =================
+
+if (formReceita) {
+    formReceita.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const descricao = document.getElementById("descricao-receita").value;
+        const valor = validarValor(document.getElementById("valor-receita").value);
+        const data = document.getElementById("data-receita").value;
+
+        if (valor === null) {
+            mostrarToast("Valor inválido", "warning");
+            return;
+        }
+
+        await fetch("http://127.0.0.1:5000/receitas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ descricao, valor, data })
+        });
+
+        formReceita.reset();
+        atualizarResumo();
+    });
+}
+
+if (formDespesa) {
+    formDespesa.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const descricao = document.getElementById("descricao-despesa").value;
+        const valor = validarValor(document.getElementById("valor-despesa").value);
+        const data = document.getElementById("data-despesa").value;
+        const tipo_id = document.getElementById("tipo-despesa")?.value;
+        const forma_pagamento_id = document.getElementById("forma-pagamento").value;
+
+        if (!tipo_id || valor === null) {
+            mostrarToast("Preencha corretamente!", "warning");
+            return;
+        }
+
+        await fetch("http://127.0.0.1:5000/despesas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ descricao, valor, data, tipo_id, forma_pagamento_id })
+        });
+
+        formDespesa.reset();
+        await atualizarResumo();
+        await renderizarLimites();
+    });
+}
+
 // ================= INIT =================
 
 async function init() {

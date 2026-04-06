@@ -176,7 +176,8 @@ receitas.forEach(receita => {
         tr.innerHTML = `
         <td>${formatarData(despesa.data)}</td>
         <td>${despesa.descricao}</td>
-        <td class="valor-positivo">${formatarMoeda(despesa.valor)}</td>
+        <td>${despesa.forma || "-"}</td>
+        <td class="valor-negativo">${formatarMoeda(despesa.valor)}</td>
 
         <td>
         <i class="fa-solid fa-pen-to-square icon editar" onclick="editarDespesa(${despesa.id})"></i>

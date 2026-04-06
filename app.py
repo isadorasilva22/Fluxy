@@ -106,7 +106,7 @@ def excluir_receita(id):
 @app.route("/despesas", methods=["GET"])
 def listar_despesas():
     cur = conn.cursor()
-    cur.execute("SELECT * FROM despesas ORDER BY data DESC")
+    cur.execute("SELECT d.id, d.descricao, d.valor, d.data, f.nome as forma FROM despesas d LEFT JOIN formas_pagamento f ON d.forma_pagamento_id = f.id ORDER BY data DESC")
     rows = cur.fetchall()
 
     despesas = []
@@ -115,7 +115,8 @@ def listar_despesas():
             "id": r[0],
             "descricao": r[1],
             "valor": float(r[2]),
-            "data": str(r[3])
+            "data": str(r[3]),
+            "forma": r[4]
         })
 
     cur.close()
@@ -168,8 +169,16 @@ def editar_despesa(id):
     parcelas = data.get("parcelas", 1)
     recorrente = data.get("recorrente", False)
 
-    # 💳 Regra de negócio
-    if forma_pagamento_id != 1:
+    # Parcelamento
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT permite_parcelamento FROM formas_pagamento WHERE id=%s",
+        (forma_pagamento_id,)
+    )
+
+    permite = cur.fetchone()[0]
+
+    if not permite:
         parcelas = 1
 
     cur = conn.cursor()
@@ -180,7 +189,7 @@ def editar_despesa(id):
             valor=%s,
             data=%s,
             tipo_id=%s,
-            forma_pagamento=%s,
+            forma_pagamento_id=%s,
             parcelas=%s,
             recorrente=%s
         WHERE id=%s
@@ -242,11 +251,20 @@ def listar_tipos():
 @app.route("/formas-pagamento", methods=["POST"])
 def criar_forma_pagamento():
     data = request.json
+    print(data)
+
+    nome = data.get("nome")
+    permite_parcelamento = data.get("permite_parcelamento", False)
+
+    if isinstance(permite_parcelamento, str):
+        permite_parcelamento = permite_parcelamento.lower() in ["true", "1", "on"]
+
+    permite_parcelamento = bool(permite_parcelamento)
 
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO formas_pagamento (nome) VALUES (%s)",
-        (data["nome"],)
+        "INSERT INTO formas_pagamento (nome, permite_parcelamento) VALUES (%s, %s)",
+        (nome, permite_parcelamento)
     )
 
     conn.commit()
@@ -262,10 +280,30 @@ def listar_formas_pagamento():
     cur.close()
 
     return jsonify([
-        {"id": d[0], "nome": d[1]}
+        {"id": d[0], "nome": d[1], "permite_parcelamento": d[2]}
         for d in dados
     ])
 
+@app.route("/formas-pagamento/<int:id>", methods=["GET"])
+def obter_forma_pagamento(id):
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT id, nome, permite_parcelamento FROM formas_pagamento WHERE id=%s",
+        (id,)
+    )
+
+    d = cur.fetchone()
+    cur.close()
+
+    if not d:
+        return jsonify({"erro": "Forma não encontrada"}), 404
+
+    return jsonify({
+        "id": d[0],
+        "nome": d[1],
+        "permite_parcelamento": d[2]
+    })
 
 # LIMITES BANCARIOS
 
@@ -273,13 +311,36 @@ def listar_formas_pagamento():
 def criar_limite():
     data = request.json
 
+    forma_pagamento_id = data.get("forma_pagamento_id")
+    valor = data.get("valor")
+
     cur = conn.cursor()
+
+    # 🔥 verifica se já existe limite para essa forma
     cur.execute("""
-        INSERT INTO limites (tipo_id, valor_limite)
-        VALUES (%s, %s)
-    """, (data["tipo_id"], data["valor"]))
+        SELECT id FROM limites 
+        WHERE forma_pagamento_id = %s
+    """, (forma_pagamento_id,))
+
+    existente = cur.fetchone()
+
+    if existente:
+        # UPDATE
+        cur.execute("""
+            UPDATE limites
+            SET valor = %s
+            WHERE forma_pagamento_id = %s
+        """, (valor, forma_pagamento_id))
+    else:
+        # INSERT
+        cur.execute("""
+            INSERT INTO limites (forma_pagamento_id, valor)
+            VALUES (%s, %s)
+        """, (forma_pagamento_id, valor))
 
     conn.commit()
+    cur.close()
+
     return {"mensagem": "Limite salvo"}
 
 @app.route("/limites/mensal", methods=["GET"])
