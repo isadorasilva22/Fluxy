@@ -124,44 +124,21 @@ def listar_despesas():
 
 @app.route("/despesas", methods=["POST"])
 def adicionar_despesa():
-
     data = request.json
-
-    descricao = data.get("descricao")
-    valor = data.get("valor")
-    data_despesa = data.get("data")
-    tipo_id = data.get("tipo_id")
-
-    forma_pagamento = data.get("forma_pagamento")
-    parcelas = data.get("parcelas", 1)
-    recorrente = data.get("recorrente", False)
-
-    # 🔒 Validações básicas
-    if not descricao or not valor or not data_despesa or not tipo_id:
-        return {"erro": "Campos obrigatórios faltando"}, 400
-
-    if not forma_pagamento:
-        return {"erro": "Forma de pagamento é obrigatória"}, 400
-
-    # 💳 Regra de negócio
-    if forma_pagamento != "credito":
-        parcelas = 1
 
     cur = conn.cursor()
 
     cur.execute("""
         INSERT INTO despesas 
-        (descricao, valor, data, tipo_id, forma_pagamento, parcelas, recorrente)
-        VALUES (%s,%s,%s,%s,%s,%s,%s)
+        (descricao, valor, data, tipo_id, forma_pagamento_id) 
+        VALUES (%s, %s, %s, %s, %s)
         RETURNING *
     """, (
-        descricao,
-        valor,
-        data_despesa,
-        tipo_id,
-        forma_pagamento,
-        parcelas,
-        recorrente
+        data["descricao"],
+        data["valor"],
+        data["data"],
+        data["tipo_id"],
+        data["forma_pagamento_id"]
     ))
 
     nova = cur.fetchone()
@@ -173,10 +150,8 @@ def adicionar_despesa():
         "descricao": nova[1],
         "valor": float(nova[2]),
         "data": str(nova[3]),
-        "tipo_id": str(nova[4]),
-        "forma_pagamento": nova[5],
-        "parcelas": nova[6],
-        "recorrente": nova[7]
+        "tipo_id": nova[4],
+        "forma_pagamento_id": nova[5]
     })
 
 @app.route("/despesas/<int:id>", methods=["PUT"])
@@ -307,6 +282,44 @@ def criar_limite():
     conn.commit()
     return {"mensagem": "Limite salvo"}
 
+@app.route("/limites/mensal", methods=["GET"])
+def calcular_limites_mensais():
+
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT 
+            f.nome,
+            l.valor AS limite,
+            COALESCE(SUM(d.valor), 0) AS gasto
+
+        FROM limites l
+        JOIN formas_pagamento f 
+            ON f.id = l.forma_pagamento_id
+
+        LEFT JOIN despesas d 
+            ON d.forma_pagamento_id = f.id
+            AND DATE_TRUNC('month', d.data) = DATE_TRUNC('month', CURRENT_DATE)
+
+        GROUP BY f.nome, l.valor
+    """)
+
+    resultados = cur.fetchall()
+    cur.close()
+
+    resposta = []
+
+    for r in resultados:
+        nome, limite, gasto = r
+
+        resposta.append({
+            "forma": nome,
+            "limite": float(limite),
+            "gasto": float(gasto),
+            "disponivel": float(limite) - float(gasto)
+        })
+
+    return jsonify(resposta)
 
 ###
 

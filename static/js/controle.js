@@ -20,6 +20,10 @@ async function obterFormasPagamento() {
     return await res.json();
 }
 
+async function obterLimitesMensais() {
+    const res = await fetch("http://127.0.0.1:5000/limites/mensal");
+    return await res.json();
+}
 // ================= ABAS =================
 
 function trocarAba(aba, botao) {
@@ -70,7 +74,7 @@ formTipo.addEventListener("submit", async function(e) {
     const nome = document.getElementById("novo-tipo").value;
 
     if (!nome) {
-        alert("Digite um nome válido");
+        mostrarToast("Digite um nome válido", "warning");
         return;
     }
 
@@ -86,7 +90,7 @@ formTipo.addEventListener("submit", async function(e) {
 
     await carregarTipos();
 
-    alert("✅ Tipo cadastrado com sucesso!");
+    mostrarToast("Tipo cadastrado com sucesso!", "success");
 });
 
 async function carregarTipos() {
@@ -119,12 +123,12 @@ if (formForma) {
         const nome = document.getElementById("nova-forma").value;
 
         if (!nome) {
-            alert("Digite um nome válido");
+            mostrarToast("Digite um nome válido", "warning");
             return;
         }
 
         if (formas.some(f => f.nome.toLowerCase() === nome.toLowerCase())) {
-            alert("Essa forma já existe");
+            mostrarToast("Forma de pagamento já cadastrada!", "error");
             return;
         }
 
@@ -139,7 +143,8 @@ if (formForma) {
         formForma.reset();
         await carregarFormasPagamento();
 
-        alert("✅ Forma de pagamento cadastrada!");
+        mostrarToast("Forma de pagamento cadastrada!", "success");
+
     });
 }
 
@@ -191,7 +196,7 @@ async function verificarLimites() {
     const alertas = await resposta.json();
 
     alertas.forEach(alerta => {
-        alert(`⚠️ Você ultrapassou o limite de ${alerta.tipo}`);
+        mostrarToast(`⚠️ Você ultrapassou o limite de ${alerta.tipo}`, "warning");
     });
 }
 
@@ -206,12 +211,12 @@ if (formLimite) {
         const valor = validarValor(valorTexto);
 
         if (!forma_pagamento_id) {
-            alert("Selecione uma forma");
+            mostrarToast("Selecione uma forma de pagamento", "warning");
             return;
         }
 
         if (valor === null) {
-            alert("Digite um valor válido");
+            mostrarToast("Digite um valor válido", "warning");
             return;
         }
 
@@ -227,7 +232,62 @@ if (formLimite) {
         });
 
         formLimite.reset();
-        alert("✅ Limite salvo!");
+        mostrarToast("Limite salvo!", "success");
+    });
+}
+
+async function mostrarLimites() {
+    const dados = await obterLimitesMensais();
+
+    dados.forEach(item => {
+        const porcentagem = (item.gasto / item.limite) * 100;
+
+        console.log(`
+${item.forma}
+Limite: ${formatarMoeda(item.limite)}
+Gasto: ${formatarMoeda(item.gasto)}
+Disponível: ${formatarMoeda(item.disponivel)}
+Uso: ${porcentagem.toFixed(1)}%
+        `);
+
+        if (item.gasto > item.limite) {
+            mostrarToast(`⚠️ Você ultrapassou o limite de ${item.forma}`, "warning");
+        }
+    });
+}
+
+async function renderizarLimites() {
+    const container = document.getElementById("limites-container");
+    const dados = await obterLimitesMensais();
+
+    container.innerHTML = "";
+
+    dados.forEach(item => {
+        const porcentagem = Math.min((item.gasto / item.limite) * 100, 100);
+            let cor = "#4caf50";
+                if (porcentagem >= 90) {
+                    cor = "#f44336";
+                } else if (porcentagem >= 70) {
+                    cor = "#ff9800";
+                }
+        const div = document.createElement("div");
+
+        div.innerHTML = `
+            <h4>${item.forma}</h4>
+            <p>${formatarMoeda(item.gasto)} / ${formatarMoeda(item.limite)}
+            (${porcentagem.toFixed(1)}%)
+            </p>
+            <div style="background:#eee; border-radius:10px;">
+                <div style="
+                    width:${porcentagem}%;
+                    background:${cor};
+                    height:10px;
+                    border-radius:10px;
+                "></div>
+            </div>
+        `;
+
+        container.appendChild(div);
     });
 }
 
@@ -260,7 +320,7 @@ formReceita.addEventListener("submit", async function(e) {
     const valor = validarValor(valorTexto);
 
     if (valor === null) {
-        alert("Digite um valor numérico válido");
+        mostrarToast("Digite um valor numérico válido", "warning");
         return;
     }
 
@@ -286,7 +346,7 @@ formDespesa.addEventListener("submit", async function(e) {
     const valor = validarValor(valorTexto);
 
     if (valor === null) {
-        alert("Digite um valor numérico válido");
+        mostrarToast("Digite um valor numérico válido", "warning");
         return;
     }
 
@@ -295,7 +355,7 @@ formDespesa.addEventListener("submit", async function(e) {
     const tipo_id = document.getElementById("tipo-despesa")?.value;
     
     if (!tipo_id) {
-        alert("Selecione um tipo de despesa");
+        mostrarToast("Selecione um tipo de despesa!", "warning");
         return;
     }
 
@@ -306,16 +366,37 @@ formDespesa.addEventListener("submit", async function(e) {
     });
 
     formDespesa.reset();
-    atualizarResumo();
-    verificarLimites(); // 🔥 ALERTA AQUI
+
+    await atualizarResumo();
+    await renderizarLimites();
+    verificarLimites();
 });
 
+// ================= NOTIFICAÇÕES =================
+
+function mostrarToast(mensagem, tipo = "success") {
+    const container = document.getElementById("toast-container");
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${tipo}`;
+    toast.textContent = mensagem;
+
+    container.appendChild(toast);
+
+    setTimeout(() => toast.classList.add("show"), 100);
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 // ================= INIT =================
 
 async function init() {
     await atualizarResumo();
     await carregarTipos();
     await carregarFormasPagamento();
+    await renderizarLimites();
 }
 
 init();
