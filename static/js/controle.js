@@ -146,19 +146,41 @@ if (formForma) {
 async function carregarFormasPagamento() {
     const formas = await obterFormasPagamento();
 
-    const select = document.getElementById("forma-pagamento");
+    const selectDespesa = document.getElementById("forma-pagamento");
+    const selectLimite = document.getElementById("forma-limite");
 
-    select.innerHTML = `
-        <option value="" disabled selected>Forma de pagamento</option>
-    `;
+    // mantém comportamento atual
+    if (selectDespesa) {
+        selectDespesa.innerHTML = `
+            <option value="" disabled selected>Forma de pagamento</option>
+        `;
+    }
 
-    if (!select) return;
+    // novo select (limites)
+    if (selectLimite) {
+        selectLimite.innerHTML = `
+            <option value="" disabled selected>Selecione a forma</option>
+        `;
+    }
 
     formas.forEach(f => {
-        const opt = document.createElement("option");
-        opt.value = f.id;
-        opt.textContent = f.nome;
-        select.appendChild(opt);
+
+        // não muda nada aqui
+        if (selectDespesa) {
+            const opt1 = document.createElement("option");
+            opt1.value = f.id;
+            opt1.textContent = f.nome;
+            selectDespesa.appendChild(opt1);
+        }
+
+        // novo comportamento
+        if (selectLimite) {
+            const opt2 = document.createElement("option");
+            opt2.value = f.id;
+            opt2.textContent = f.nome;
+            selectLimite.appendChild(opt2);
+        }
+
     });
 }
 
@@ -170,6 +192,42 @@ async function verificarLimites() {
 
     alertas.forEach(alerta => {
         alert(`⚠️ Você ultrapassou o limite de ${alerta.tipo}`);
+    });
+}
+
+const formLimite = document.getElementById("form-limite");
+
+if (formLimite) {
+    formLimite.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const forma_pagamento_id = document.getElementById("forma-limite").value;
+        const valorTexto = document.getElementById("valor-limite").value;
+        const valor = validarValor(valorTexto);
+
+        if (!forma_pagamento_id) {
+            alert("Selecione uma forma");
+            return;
+        }
+
+        if (valor === null) {
+            alert("Digite um valor válido");
+            return;
+        }
+
+        await fetch("http://127.0.0.1:5000/limites", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                forma_pagamento_id,
+                valor
+            })
+        });
+
+        formLimite.reset();
+        alert("✅ Limite salvo!");
     });
 }
 

@@ -107,8 +107,10 @@
     <section class="card">
         <h2>Definir Limite</h2>
         <form id="form-limite">
-            <input type="text" placeholder="Ex: Cartão Nubank" required>
-            <input type="text" placeholder="Limite" required>
+            <select id="forma-limite" required>
+                <option value="" disabled selected>Selecione a forma</option>
+            </select>
+            <input type="text" id="valor-limite" placeholder="Limite" required>
             <button type="submit">Salvar Limite</button>
         </form>
     </section>
