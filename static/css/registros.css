@@ -265,6 +265,12 @@ body {
   border: 1px solid #ddd;
 }
 
+.modal select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
 .modal-botoes {
   display: flex;
   justify-content: space-between;

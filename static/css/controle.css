@@ -124,6 +124,13 @@ body {
 
 /* ================= RESUMO MODERNO ================= */
 
+#limites-container {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 .resumo .valores {
     display: flex;
     justify-content: space-between;
