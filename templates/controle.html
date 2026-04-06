@@ -76,6 +76,7 @@
             <input type="text" id="descricao-despesa" placeholder="Descrição" required>
             <select id="tipo-despesa" required></select>
             <input type="text" id="valor-despesa" placeholder="Valor" required>
+            <select id="forma-pagamento" required></select>
             <input type="date" id="data-despesa" required>
             <button type="submit">Salvar Despesa</button>
         </form>
@@ -92,6 +93,14 @@
         <form id="form-tipo">
             <input type="text" id="novo-tipo" placeholder="Ex: Alimentação, Transporte..." required>
             <button type="submit">Salvar Tipo</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Formas de Pagamento</h2>
+        <form id="form-forma">
+            <input type="text" id="nova-forma" placeholder="Ex: Crédito, Pix..." required>
+            <button type="submit">Salvar</button>
         </form>
     </section>
 

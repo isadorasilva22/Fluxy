@@ -15,6 +15,11 @@ async function obterTipos() {
     return await resposta.json();
 }
 
+async function obterFormasPagamento() {
+    const res = await fetch("http://127.0.0.1:5000/formas-pagamento");
+    return await res.json();
+}
+
 // ================= ABAS =================
 
 function trocarAba(aba, botao) {
@@ -103,6 +108,60 @@ async function carregarTipos() {
     });
 }
 
+// ================= FORMAS DE PAGAMENTO =================
+
+const formForma = document.getElementById("form-forma");
+
+if (formForma) {
+    formForma.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const nome = document.getElementById("nova-forma").value;
+
+        if (!nome) {
+            alert("Digite um nome válido");
+            return;
+        }
+
+        if (formas.some(f => f.nome.toLowerCase() === nome.toLowerCase())) {
+            alert("Essa forma já existe");
+            return;
+        }
+
+        await fetch("http://127.0.0.1:5000/formas-pagamento", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ nome })
+        });
+
+        formForma.reset();
+        await carregarFormasPagamento();
+
+        alert("✅ Forma de pagamento cadastrada!");
+    });
+}
+
+async function carregarFormasPagamento() {
+    const formas = await obterFormasPagamento();
+
+    const select = document.getElementById("forma-pagamento");
+
+    select.innerHTML = `
+        <option value="" disabled selected>Forma de pagamento</option>
+    `;
+
+    if (!select) return;
+
+    formas.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.id;
+        opt.textContent = f.nome;
+        select.appendChild(opt);
+    });
+}
+
 // ================= LIMITES =================
 
 async function verificarLimites() {
@@ -159,7 +218,8 @@ formReceita.addEventListener("submit", async function(e) {
     atualizarResumo();
 });
 
-// Despesa (AGORA COM TIPO)
+// Despesa 
+
 formDespesa.addEventListener("submit", async function(e) {
     e.preventDefault();
 
@@ -172,6 +232,7 @@ formDespesa.addEventListener("submit", async function(e) {
         return;
     }
 
+    const forma_pagamento_id = document.getElementById("forma-pagamento").value;
     const data = document.getElementById("data-despesa").value;
     const tipo_id = document.getElementById("tipo-despesa")?.value;
     
@@ -183,7 +244,7 @@ formDespesa.addEventListener("submit", async function(e) {
     await fetch("http://127.0.0.1:5000/despesas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ descricao, valor, data, tipo_id })
+        body: JSON.stringify({ descricao, valor, data, tipo_id, forma_pagamento_id })
     });
 
     formDespesa.reset();
@@ -196,6 +257,7 @@ formDespesa.addEventListener("submit", async function(e) {
 async function init() {
     await atualizarResumo();
     await carregarTipos();
+    await carregarFormasPagamento();
 }
 
 init();
