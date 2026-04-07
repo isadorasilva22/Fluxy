@@ -248,7 +248,7 @@ async function renderizarLimites() {
         let cor = "#4caf50";
         if (porcentagem >= 90) cor = "#f44336";
         else if (porcentagem >= 70) cor = "#ff9800";
-
+        else if (porcentagem >= 50) cor = "#ebeb71";
         const div = document.createElement("div");
 
         div.innerHTML = `
