@@ -202,7 +202,7 @@ receitas.forEach(receita => {
         trTotalDespesa.classList.add("linha-total");
 
         trTotalDespesa.innerHTML = `
-            <td colspan="2">Total</td>
+            <td colspan="3">Total</td>
             <td class="total-negativo">${formatarMoeda(totalDespesas)}</td>
             <td></td>
             <td></td>
@@ -322,6 +322,9 @@ async function editarDespesa(id) {
 
     await carregarFormasModal();
 
+    editFormaPagamento.value = "";
+    editGrupoParcelas.style.display = "none";
+
     editFormaPagamento.style.display = "block";
 
     if (despesa.forma_pagamento_id) {
@@ -330,7 +333,7 @@ async function editarDespesa(id) {
         const forma = formasCache.find(f => f.id == despesa.forma_pagamento_id);
         atualizarParcelasModal(forma);
 
-    } else {
+    } else if (despesa.forma){
         const forma = formasCache.find(f => f.nome === despesa.forma);
 
         if (forma) {
