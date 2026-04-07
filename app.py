@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import psycopg2
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 app = Flask(__name__)
 CORS(app)
@@ -127,33 +129,54 @@ def listar_despesas():
 def adicionar_despesa():
     data = request.json
 
+    descricao = data["descricao"]
+    valor_total = float(data["valor"])
+    data_inicial = datetime.strptime(data["data"], "%Y-%m-%d")
+    tipo_id = data["tipo_id"]
+    forma_pagamento_id = data["forma_pagamento_id"]
+    parcelas = int(data.get("parcelas", 1))
+
     cur = conn.cursor()
 
-    cur.execute("""
-        INSERT INTO despesas 
-        (descricao, valor, data, tipo_id, forma_pagamento_id) 
-        VALUES (%s, %s, %s, %s, %s)
-        RETURNING *
-    """, (
-        data["descricao"],
-        data["valor"],
-        data["data"],
-        data["tipo_id"],
-        data["forma_pagamento_id"]
-    ))
+    # Verifica se permite parcelamento
+    cur.execute(
+        "SELECT permite_parcelamento FROM formas_pagamento WHERE id=%s",
+        (forma_pagamento_id,)
+    )
 
-    nova = cur.fetchone()
+    permite = cur.fetchone()[0]
+
+    if not permite:
+        parcelas = 1
+
+    valor_parcela = round(valor_total / parcelas, 2)
+
+    despesas_criadas = []
+
+    for i in range(parcelas):
+        data_parcela = data_inicial + relativedelta(months=i)
+
+        descricao_parcela = f"{descricao} ({i+1}/{parcelas})"
+
+        cur.execute("""
+            INSERT INTO despesas 
+            (descricao, valor, data, tipo_id, forma_pagamento_id) 
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING *
+        """, (
+            descricao_parcela,
+            valor_parcela,
+            data_parcela,
+            tipo_id,
+            forma_pagamento_id
+        ))
+
+        despesas_criadas.append(cur.fetchone())
+
     conn.commit()
     cur.close()
 
-    return jsonify({
-        "id": nova[0],
-        "descricao": nova[1],
-        "valor": float(nova[2]),
-        "data": str(nova[3]),
-        "tipo_id": nova[4],
-        "forma_pagamento_id": nova[5]
-    })
+    return jsonify({"mensagem": f"{parcelas} parcelas criadas com sucesso!"})
 
 @app.route("/despesas/<int:id>", methods=["PUT"])
 def editar_despesa(id):
@@ -352,7 +375,9 @@ def calcular_limites_mensais():
         SELECT 
             f.nome,
             l.valor AS limite,
-            COALESCE(SUM(d.valor), 0) AS gasto
+
+            -- 🔥 soma parcelas futuras (limite comprometido)
+            COALESCE(SUM(d.valor), 0) AS limite_usado
 
         FROM limites l
         JOIN formas_pagamento f 
@@ -360,7 +385,7 @@ def calcular_limites_mensais():
 
         LEFT JOIN despesas d 
             ON d.forma_pagamento_id = f.id
-            AND DATE_TRUNC('month', d.data) = DATE_TRUNC('month', CURRENT_DATE)
+            AND d.data >= DATE_TRUNC('month', CURRENT_DATE)
 
         GROUP BY f.nome, l.valor
     """)
@@ -371,13 +396,15 @@ def calcular_limites_mensais():
     resposta = []
 
     for r in resultados:
-        nome, limite, gasto = r
+        nome, limite, usado = r
+
+        disponivel = float(limite) - float(usado)
 
         resposta.append({
             "forma": nome,
             "limite": float(limite),
-            "gasto": float(gasto),
-            "disponivel": float(limite) - float(gasto)
+            "gasto": float(usado),  # agora é limite usado
+            "disponivel": disponivel
         })
 
     return jsonify(resposta)

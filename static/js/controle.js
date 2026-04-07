@@ -333,6 +333,7 @@ if (formDespesa) {
         const data = document.getElementById("data-despesa").value;
         const tipo_id = document.getElementById("tipo-despesa")?.value;
         const forma_pagamento_id = document.getElementById("forma-pagamento").value;
+        const parcelas = document.getElementById("parcelas")?.value || 1;
 
         if (!tipo_id || valor === null) {
             mostrarToast("Preencha corretamente!", "warning");
@@ -342,7 +343,7 @@ if (formDespesa) {
         await fetch("http://127.0.0.1:5000/despesas", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ descricao, valor, data, tipo_id, forma_pagamento_id })
+            body: JSON.stringify({ descricao, valor, data, tipo_id, forma_pagamento_id, parcelas})
         });
 
         formDespesa.reset();
