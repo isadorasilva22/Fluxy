@@ -54,6 +54,8 @@
                 <strong id="saldo">R$ 0,00</strong>
             </div>
         </div>
+
+        <div id="limites-container"></div>
     </section>
 
   <div class="form-wrapper">
@@ -77,6 +79,23 @@
             <select id="tipo-despesa" required></select>
             <input type="text" id="valor-despesa" placeholder="Valor" required>
             <select id="forma-pagamento" required></select>
+            <div id="grupo-parcelas" style="display:none;">
+                <label id="label-parcelas" for="parcelas">Parcelas:</label>
+                    <select id="parcelas">
+                        <option value="1">1x</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="4">4x</option>
+                        <option value="5">5x</option>
+                        <option value="6">6x</option>
+                        <option value="7">7x</option>
+                        <option value="8">8x</option>
+                        <option value="9">9x</option>
+                        <option value="10">10x</option>
+                        <option value="11">11x</option>
+                        <option value="12">12x</option>
+                    </select>
+            </div>
             <input type="date" id="data-despesa" required>
             <button type="submit">Salvar Despesa</button>
         </form>
@@ -100,6 +119,10 @@
         <h2>Formas de Pagamento</h2>
         <form id="form-forma">
             <input type="text" id="nova-forma" placeholder="Ex: Crédito, Pix..." required>
+                <label style="display:block; margin-top:10px;">
+                    <input type="checkbox" id="permite-parcelamento">
+                    Permite parcelamento
+                </label>
             <button type="submit">Salvar</button>
         </form>
     </section>
@@ -117,6 +140,7 @@
 
 </div>
 
+<div id="toast-container"></div>
 <script src="{{ url_for('static', filename='js/controle.js') }}"></script>
 </body>
 </html>

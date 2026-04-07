@@ -2,6 +2,8 @@
 
 const modal = document.getElementById("modal-editar");
 const editDescricao = document.getElementById("edit-descricao");
+const editFormaPagamento = document.getElementById("edit-forma-pagamento");
+const editGrupoParcelas = document.getElementById("edit-grupo-parcelas");
 const editValor = document.getElementById("edit-valor");
 const editData = document.getElementById("edit-data");
 
@@ -176,7 +178,8 @@ receitas.forEach(receita => {
         tr.innerHTML = `
         <td>${formatarData(despesa.data)}</td>
         <td>${despesa.descricao}</td>
-        <td class="valor-positivo">${formatarMoeda(despesa.valor)}</td>
+        <td>${despesa.forma || "-"}</td>
+        <td class="valor-negativo">${formatarMoeda(despesa.valor)}</td>
 
         <td>
         <i class="fa-solid fa-pen-to-square icon editar" onclick="editarDespesa(${despesa.id})"></i>
@@ -199,8 +202,9 @@ receitas.forEach(receita => {
         trTotalDespesa.classList.add("linha-total");
 
         trTotalDespesa.innerHTML = `
-            <td colspan="2">Total</td>
+            <td colspan="3">Total</td>
             <td class="total-negativo">${formatarMoeda(totalDespesas)}</td>
+            <td></td>
             <td></td>
         `;
 
@@ -212,6 +216,44 @@ receitas.forEach(receita => {
         animarTabela(tabelaReceitas);
         animarTabela(tabelaDespesas);
     }
+}
+
+// ============ FOMRAS PAGAMENTO ================== //
+
+let formasCache = [];
+
+async function obterFormasPagamento() {
+    const res = await fetch("http://127.0.0.1:5000/formas-pagamento");
+    return await res.json();
+}
+
+async function carregarFormasModal() {
+    formasCache = await obterFormasPagamento();
+
+    if (!editFormaPagamento) return;
+
+    editFormaPagamento.innerHTML = `<option value="">Selecione</option>`;
+
+    formasCache.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.id;
+        opt.textContent = f.nome;
+        editFormaPagamento.appendChild(opt);
+    });
+}
+
+if (editFormaPagamento) {
+    editFormaPagamento.addEventListener("change", () => {
+        const forma = formasCache.find(f => f.id == editFormaPagamento.value);
+        atualizarParcelasModal(forma);
+    });
+}
+
+function atualizarParcelasModal(forma) {
+    if (!editGrupoParcelas) return;
+
+    editGrupoParcelas.style.display =
+        forma?.permite_parcelamento ? "block" : "none";
 }
 
 // ============ AÇÕES RECEITAS ================== //
@@ -244,6 +286,8 @@ async function editarReceita(id) {
     editValor.value = receita.valor;
     editData.value = receita.data || "";
 
+    editFormaPagamento.style.display = "none";
+    editGrupoParcelas.style.display = "none";
     modal.style.display = "flex";
 }
 
@@ -276,6 +320,28 @@ async function editarDespesa(id) {
     editValor.value = despesa.valor;
     editData.value = despesa.data || "";
 
+    await carregarFormasModal();
+
+    editFormaPagamento.value = "";
+    editGrupoParcelas.style.display = "none";
+
+    editFormaPagamento.style.display = "block";
+
+    if (despesa.forma_pagamento_id) {
+        editFormaPagamento.value = despesa.forma_pagamento_id;
+
+        const forma = formasCache.find(f => f.id == despesa.forma_pagamento_id);
+        atualizarParcelasModal(forma);
+
+    } else if (despesa.forma){
+        const forma = formasCache.find(f => f.nome === despesa.forma);
+
+        if (forma) {
+            editFormaPagamento.value = forma.id;
+            atualizarParcelasModal(forma);
+        }
+    }
+
     modal.style.display = "flex";
 }
 
@@ -298,6 +364,9 @@ btnSalvar.onclick = async () => {
     }
 
     if (tipoAtual === "despesa") {
+
+        dados.forma_pagamento_id = editFormaPagamento.value;
+
         await fetch(`/despesas/${registroAtual}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
