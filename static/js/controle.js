@@ -128,7 +128,9 @@ if (formForma) {
 
         const nome = document.getElementById("nova-forma").value;
         const permite_parcelamento = document.getElementById("permite-parcelamento").checked;
-        const dia_fechamento = document.getElementById("dia-fechamento").value;
+        const dia_fechamento = permite_parcelamento
+            ? document.getElementById("dia-fechamento").value
+            : null;
         if (!nome) {
             mostrarToast("Digite um nome válido", "warning");
             return;
@@ -349,6 +351,19 @@ if (formDespesa) {
         formDespesa.reset();
         await atualizarResumo();
         await renderizarLimites();
+    });
+}
+
+const checkboxParcelamento = document.getElementById("permite-parcelamento");
+const grupoFechamento = document.getElementById("grupo-fechamento");
+
+if (checkboxParcelamento) {
+    checkboxParcelamento.addEventListener("change", () => {
+        if (checkboxParcelamento.checked) {
+            grupoFechamento.style.display = "block";
+        } else {
+            grupoFechamento.style.display = "none";
+        }
     });
 }
 
