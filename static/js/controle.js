@@ -128,7 +128,7 @@ if (formForma) {
 
         const nome = document.getElementById("nova-forma").value;
         const permite_parcelamento = document.getElementById("permite-parcelamento").checked;
-
+        const dia_fechamento = document.getElementById("dia-fechamento").value;
         if (!nome) {
             mostrarToast("Digite um nome válido", "warning");
             return;
@@ -142,7 +142,7 @@ if (formForma) {
         await fetch("http://127.0.0.1:5000/formas-pagamento", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nome, permite_parcelamento })
+            body: JSON.stringify({ nome, permite_parcelamento, dia_fechamento })
         });
 
         formForma.reset();

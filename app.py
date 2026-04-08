@@ -285,9 +285,11 @@ def criar_forma_pagamento():
     permite_parcelamento = bool(permite_parcelamento)
 
     cur = conn.cursor()
+
+    dia_fechamento = data.get("dia_fechamento")
     cur.execute(
-        "INSERT INTO formas_pagamento (nome, permite_parcelamento) VALUES (%s, %s)",
-        (nome, permite_parcelamento)
+        "INSERT INTO formas_pagamento (nome, permite_parcelamento, dia_fechamento) VALUES (%s, %s, %s)",
+        (nome, permite_parcelamento, dia_fechamento)
     )
 
     conn.commit()
@@ -303,7 +305,7 @@ def listar_formas_pagamento():
     cur.close()
 
     return jsonify([
-        {"id": d[0], "nome": d[1], "permite_parcelamento": d[2]}
+        {"id": d[0], "nome": d[1], "permite_parcelamento": d[2], "dia_fechamento": d[3]}
         for d in dados
     ])
 
@@ -312,7 +314,7 @@ def obter_forma_pagamento(id):
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT id, nome, permite_parcelamento FROM formas_pagamento WHERE id=%s",
+        "SELECT id, nome, permite_parcelamento, dia_fechamento FROM formas_pagamento WHERE id=%s",
         (id,)
     )
 
@@ -325,7 +327,8 @@ def obter_forma_pagamento(id):
     return jsonify({
         "id": d[0],
         "nome": d[1],
-        "permite_parcelamento": d[2]
+        "permite_parcelamento": d[2],
+        "dia_fechamento": d[3]
     })
 
 # LIMITES BANCARIOS
@@ -339,7 +342,7 @@ def criar_limite():
 
     cur = conn.cursor()
 
-    # 🔥 verifica se já existe limite para essa forma
+    # Verifica se já existe limite para essa forma
     cur.execute("""
         SELECT id FROM limites 
         WHERE forma_pagamento_id = %s
@@ -373,39 +376,55 @@ def calcular_limites_mensais():
 
     cur.execute("""
         SELECT 
+            f.id,
             f.nome,
             l.valor AS limite,
-
-            -- 🔥 soma parcelas futuras (limite comprometido)
-            COALESCE(SUM(d.valor), 0) AS limite_usado
-
+            f.dia_fechamento
         FROM limites l
         JOIN formas_pagamento f 
             ON f.id = l.forma_pagamento_id
-
-        LEFT JOIN despesas d 
-            ON d.forma_pagamento_id = f.id
-            AND d.data >= DATE_TRUNC('month', CURRENT_DATE)
-
-        GROUP BY f.nome, l.valor
     """)
 
-    resultados = cur.fetchall()
-    cur.close()
+    formas = cur.fetchall()
 
     resposta = []
 
-    for r in resultados:
-        nome, limite, usado = r
+    hoje = datetime.today()
+
+    for f in formas:
+        forma_id, nome, limite, dia_fechamento = f
+
+        if dia_fechamento is None:
+            # fallback: comportamento antigo
+            inicio = hoje.replace(day=1)
+            fim = hoje
+        else:
+            if hoje.day > dia_fechamento:
+                inicio = hoje.replace(day=dia_fechamento) + relativedelta(days=1)
+                fim = inicio + relativedelta(months=1) - relativedelta(days=1)
+            else:
+                inicio = (hoje - relativedelta(months=1)).replace(day=dia_fechamento) + relativedelta(days=1)
+                fim = hoje.replace(day=dia_fechamento)
+
+        cur.execute("""
+            SELECT COALESCE(SUM(valor), 0)
+            FROM despesas
+            WHERE forma_pagamento_id = %s
+            AND data >= %s
+        """, (forma_id, inicio))
+
+        usado = cur.fetchone()[0]
 
         disponivel = float(limite) - float(usado)
 
         resposta.append({
             "forma": nome,
             "limite": float(limite),
-            "gasto": float(usado),  # agora é limite usado
+            "gasto": float(usado),
             "disponivel": disponivel
         })
+
+    cur.close()
 
     return jsonify(resposta)
 
