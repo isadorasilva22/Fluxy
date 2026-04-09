@@ -150,7 +150,15 @@ document.getElementById("btn-salvar-forma").onclick = async () => {
 
     const nome = inputNomeForma.value;
     const permite_parcelamento = inputParcelamento.checked;
-    const dia_fechamento = permite_parcelamento ? inputDia.value : null;
+   let dia_fechamento = null;
+
+   if (permite_parcelamento) {
+    const valor = inputDia.value.trim();
+
+    if (valor !== "") {
+        dia_fechamento = Number(valor);
+    }
+   }
 
     if (!nome) {
         mostrarToast("Digite um nome válido", "warning");
@@ -169,6 +177,7 @@ document.getElementById("btn-salvar-forma").onclick = async () => {
 
     await renderizarFormasModal();
     await carregarFormasPagamento();
+    await renderizarLimites();
 };
 
 document.getElementById("btn-cancelar-forma").onclick = () => {

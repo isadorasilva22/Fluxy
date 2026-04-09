@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import psycopg2
-from datetime import datetime
+from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+from calendar import monthrange
 
 app = Flask(__name__)
 CORS(app)
@@ -299,6 +300,12 @@ def criar_forma_pagamento():
     cur = conn.cursor()
 
     dia_fechamento = data.get("dia_fechamento")
+
+    if dia_fechamento in ("", None):
+        dia_fechamento = None
+    else:
+        dia_fechamento = int(dia_fechamento)
+
     cur.execute(
         "INSERT INTO formas_pagamento (nome, permite_parcelamento, dia_fechamento) VALUES (%s, %s, %s)",
         (nome, permite_parcelamento, dia_fechamento)
@@ -350,6 +357,11 @@ def editar_forma(id):
     nome = data.get("nome")
     permite = data.get("permite_parcelamento")
     dia = data.get("dia_fechamento")
+
+    if dia in ("", None):
+        dia = None
+    else:
+        dia = int(dia)
 
     cur = conn.cursor()
 
@@ -444,18 +456,19 @@ def calcular_limites_mensais():
             inicio = hoje.replace(day=1)
             fim = hoje
         else:
-            if hoje.day > dia_fechamento:
-                inicio = hoje.replace(day=dia_fechamento) + relativedelta(days=1)
-                fim = inicio + relativedelta(months=1) - relativedelta(days=1)
-            else:
-                inicio = (hoje - relativedelta(months=1)).replace(day=dia_fechamento) + relativedelta(days=1)
-                fim = hoje.replace(day=dia_fechamento)
-
+            if dia_fechamento:
+                if hoje.day > dia_fechamento:
+                    # já passou do fechamento → usa mês atual
+                    inicio = date(hoje.year, hoje.month, dia_fechamento) + relativedelta(days=1)
+                else:
+                    # ainda não chegou → usa mês anterior
+                    data_mes_anterior = hoje - relativedelta(months=1)
+                    inicio = date(data_mes_anterior.year, data_mes_anterior.month, dia_fechamento) + relativedelta(days=1)
         cur.execute("""
             SELECT COALESCE(SUM(valor), 0)
             FROM despesas
             WHERE forma_pagamento_id = %s
-            AND data >= %s
+            AND data::date >= %s
         """, (forma_id, inicio))
 
         usado = cur.fetchone()[0]
