@@ -25,6 +25,11 @@ async function obterDespesas() {
     return await resposta.json();
 }
 
+async function obterTipos() {
+    const res = await fetch("http://127.0.0.1:5000/tipos");
+    return await res.json();
+}
+
 // ================= ELEMENTOS =================
 
 const listaReceitas = document.getElementById("lista-receitas");
@@ -178,6 +183,7 @@ receitas.forEach(receita => {
         tr.innerHTML = `
         <td>${formatarData(despesa.data)}</td>
         <td>${despesa.descricao}</td>
+        <td>${despesa.tipo || "-"}</td>
         <td>${despesa.forma || "-"}</td>
         <td class="valor-negativo">${formatarMoeda(despesa.valor)}</td>
 
@@ -202,7 +208,7 @@ receitas.forEach(receita => {
         trTotalDespesa.classList.add("linha-total");
 
         trTotalDespesa.innerHTML = `
-            <td colspan="3">Total</td>
+            <td colspan="4">Total</td>
             <td class="total-negativo">${formatarMoeda(totalDespesas)}</td>
             <td></td>
             <td></td>
@@ -308,6 +314,22 @@ async function excluirDespesa(id) {
     }
 }
 
+async function carregarTiposModal() {
+    const tipos = await obterTipos();
+    const select = document.getElementById("edit-tipo-despesa");
+
+    if (!select) return;
+
+    select.innerHTML = `<option value="">Selecione</option>`;
+
+    tipos.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t.id;
+        opt.textContent = t.nome;
+        select.appendChild(opt);
+    });
+}
+
 async function editarDespesa(id) {
 
     const despesas = await obterDespesas();
@@ -321,8 +343,10 @@ async function editarDespesa(id) {
     editData.value = despesa.data || "";
 
     await carregarFormasModal();
+    await carregarTiposModal();
 
     editFormaPagamento.value = "";
+    document.getElementById("edit-tipo-despesa").value = despesa.tipo_id || "";
     editGrupoParcelas.style.display = "none";
 
     editFormaPagamento.style.display = "block";
@@ -365,14 +389,24 @@ btnSalvar.onclick = async () => {
 
     if (tipoAtual === "despesa") {
 
-        dados.forma_pagamento_id = editFormaPagamento.value;
+        dados.forma_pagamento_id = editFormaPagamento.value 
+            ? Number(editFormaPagamento.value) 
+            : null;
+        const tipoSelect = document.getElementById("edit-tipo-despesa");
+        dados.tipo_id = tipoSelect.value ? Number(tipoSelect.value) : null;
 
-        await fetch(`/despesas/${registroAtual}`, {
+        const response = await fetch(`/despesas/${registroAtual}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(dados)
         });
-    }
+
+        if (!response.ok) {
+            console.error("Erro ao atualizar despesa");
+            alert("Erro ao salvar. Veja o console.");
+            return;
+        }
+            }
 
     modal.style.display = "none";
     carregarRegistros(true);

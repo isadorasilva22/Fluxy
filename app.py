@@ -108,7 +108,7 @@ def excluir_receita(id):
 @app.route("/despesas", methods=["GET"])
 def listar_despesas():
     cur = conn.cursor()
-    cur.execute("SELECT d.id, d.descricao, d.valor, d.data, f.nome as forma FROM despesas d LEFT JOIN formas_pagamento f ON d.forma_pagamento_id = f.id ORDER BY data DESC")
+    cur.execute("SELECT d.id, d.descricao, d.valor, d.data, f.nome as forma, t.id as tipo_id, t.nome as tipo FROM despesas d LEFT JOIN formas_pagamento f ON d.forma_pagamento_id = f.id LEFT JOIN tipos_despesa t ON d.tipo_id = t.id ORDER BY data DESC")
     rows = cur.fetchall()
 
     despesas = []
@@ -118,7 +118,9 @@ def listar_despesas():
             "descricao": r[1],
             "valor": float(r[2]),
             "data": str(r[3]),
-            "forma": r[4]
+            "forma": r[4],
+            "tipo_id": r[5],
+            "tipo": r[6]
         })
 
     cur.close()
@@ -133,18 +135,27 @@ def adicionar_despesa():
     valor_total = float(data["valor"])
     data_inicial = datetime.strptime(data["data"], "%Y-%m-%d")
     tipo_id = data["tipo_id"]
-    forma_pagamento_id = data["forma_pagamento_id"]
+    forma_pagamento_id = data.get("forma_pagamento_id")
+
+    if forma_pagamento_id in ("", None):
+        forma_pagamento_id = None
+
     parcelas = int(data.get("parcelas", 1))
 
     cur = conn.cursor()
 
-    # Verifica se permite parcelamento
-    cur.execute(
-        "SELECT permite_parcelamento FROM formas_pagamento WHERE id=%s",
-        (forma_pagamento_id,)
-    )
+    permite = False
+    resultado = None
 
-    permite = cur.fetchone()[0]
+    if forma_pagamento_id:
+        cur.execute(
+            "SELECT permite_parcelamento FROM formas_pagamento WHERE id=%s",
+            (forma_pagamento_id,)
+        )
+        resultado = cur.fetchone()
+
+        if resultado:
+            permite = resultado[0]
 
     if not permite:
         parcelas = 1
@@ -187,24 +198,27 @@ def editar_despesa(id):
     valor = data.get("valor")
     data_despesa = data.get("data")
     tipo_id = data.get("tipo_id")
-
     forma_pagamento_id = data.get("forma_pagamento_id")
     parcelas = data.get("parcelas", 1)
-    recorrente = data.get("recorrente", False)
 
     # Parcelamento
     cur = conn.cursor()
-    cur.execute(
-        "SELECT permite_parcelamento FROM formas_pagamento WHERE id=%s",
-        (forma_pagamento_id,)
-    )
+    permite = False
+    resultado = None
 
-    permite = cur.fetchone()[0]
+    if forma_pagamento_id:
+        cur.execute(
+            "SELECT permite_parcelamento FROM formas_pagamento WHERE id=%s",
+            (forma_pagamento_id,)
+        )
+
+        resultado = cur.fetchone()
+
+    if resultado:
+        permite = resultado[0]
 
     if not permite:
         parcelas = 1
-
-    cur = conn.cursor()
 
     cur.execute("""
         UPDATE despesas
@@ -213,8 +227,7 @@ def editar_despesa(id):
             data=%s,
             tipo_id=%s,
             forma_pagamento_id=%s,
-            parcelas=%s,
-            recorrente=%s
+            parcelas=%s
         WHERE id=%s
     """, (
         descricao,
@@ -223,7 +236,6 @@ def editar_despesa(id):
         tipo_id,
         forma_pagamento_id,
         parcelas,
-        recorrente,
         id
     ))
 
