@@ -131,6 +131,9 @@
                 </label>
             </div>
             <button type="submit">Salvar</button>
+            <button type="button" id="btn-ver-formas" style="margin-top:10px;">
+                Ver Formas de Pagamento
+            </button>
         </form>
     </section>
 
@@ -145,6 +148,51 @@
         </form>
     </section>
 
+</div>
+
+<div id="modal-formas" class="modal">
+    <div class="modal-content">
+        <h3>Formas de Pagamento</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Parcelamento</th>
+                    <th>Fechamento</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-formas"></tbody>
+        </table>
+
+        <button id="fechar-modal-formas">Fechar</button>
+    </div>
+</div>
+
+<div id="modal-editar-forma" class="modal">
+    <div class="modal-content">
+        <h3>Editar Forma de Pagamento</h3>
+
+        <input type="text" id="edit-forma-nome" placeholder="Nome">
+
+        <label style="display:block; margin-top:10px;">
+            <input type="checkbox" id="edit-forma-parcelamento">
+            Permite parcelamento
+        </label>
+
+        <div id="edit-grupo-fechamento" style="display:none;">
+            <label>
+                Dia Fechamento:
+                <input type="number" id="edit-dia-fechamento">
+            </label>
+        </div>
+
+        <div style="margin-top:15px;">
+            <button id="btn-salvar-forma">Salvar</button>
+            <button id="btn-cancelar-forma">Cancelar</button>
+        </div>
+    </div>
 </div>
 
 <div id="toast-container"></div>

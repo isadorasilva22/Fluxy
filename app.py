@@ -343,6 +343,39 @@ def obter_forma_pagamento(id):
         "dia_fechamento": d[3]
     })
 
+@app.route("/formas-pagamento/<int:id>", methods=["PUT"])
+def editar_forma(id):
+    data = request.json
+
+    nome = data.get("nome")
+    permite = data.get("permite_parcelamento")
+    dia = data.get("dia_fechamento")
+
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE formas_pagamento
+        SET nome=%s,
+            permite_parcelamento=%s,
+            dia_fechamento=%s
+        WHERE id=%s
+    """, (nome, permite, dia, id))
+
+    conn.commit()
+    cur.close()
+
+    return jsonify({"mensagem": "Forma atualizada"})
+
+@app.route("/formas-pagamento/<int:id>", methods=["DELETE"])
+def excluir_forma(id):
+    cur = conn.cursor()
+    cur.execute("DELETE FROM formas_pagamento WHERE id=%s", (id,))
+    conn.commit()
+    cur.close()
+
+    return jsonify({"mensagem": "Forma excluída"})
+
+
 # LIMITES BANCARIOS
 
 @app.route("/limites", methods=["POST"])

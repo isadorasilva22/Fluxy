@@ -73,6 +73,126 @@ function trocarAba(nomeAba, botao) {
     }
 }
 
+// ================= MODAL FORMAS PAGAMENTOS =================
+
+const btnVerFormas = document.getElementById("btn-ver-formas");
+const modalFormas = document.getElementById("modal-formas");
+const listaFormas = document.getElementById("lista-formas");
+const modalEditarForma = document.getElementById("modal-editar-forma");
+const inputNomeForma = document.getElementById("edit-forma-nome");
+const inputParcelamento = document.getElementById("edit-forma-parcelamento");
+const inputDia = document.getElementById("edit-dia-fechamento");
+const grupoFechamentoEdit = document.getElementById("edit-grupo-fechamento");
+
+let formaEditandoId = null;
+
+if (btnVerFormas) {
+    btnVerFormas.onclick = async () => {
+        await renderizarFormasModal();
+        modalFormas.classList.add("ativo");
+    };
+}
+
+document.getElementById("fechar-modal-formas").onclick = () => {
+    modalFormas.classList.remove("ativo");
+};
+
+async function renderizarFormasModal() {
+    const formas = await obterFormasPagamento();
+
+    listaFormas.innerHTML = "";
+
+    formas.forEach(f => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${f.nome}</td>
+            <td>${f.permite_parcelamento ? "Sim" : "Não"}</td>
+            <td>${f.dia_fechamento || "-"}</td>
+            <td>
+                <button onclick="editarForma(${f.id})">✏️</button>
+                <button onclick="excluirForma(${f.id})">🗑️</button>
+            </td>
+        `;
+
+        listaFormas.appendChild(tr);
+    });
+}
+
+async function editarForma(id) {
+    const formas = await obterFormasPagamento();
+    const forma = formas.find(f => f.id === id);
+
+    if (!forma) return;
+
+    formaEditandoId = id;
+
+    inputNomeForma.value = forma.nome;
+    inputParcelamento.checked = forma.permite_parcelamento;
+
+    if (forma.permite_parcelamento) {
+        grupoFechamentoEdit.style.display = "block";
+        inputDia.value = forma.dia_fechamento || "";
+    } else {
+        grupoFechamentoEdit.style.display = "none";
+        inputDia.value = "";
+    }
+
+    modalEditarForma.classList.add("ativo");
+}
+
+inputParcelamento.addEventListener("change", () => {
+    grupoFechamentoEdit.style.display =
+        inputParcelamento.checked ? "block" : "none";
+});
+
+document.getElementById("btn-salvar-forma").onclick = async () => {
+
+    const nome = inputNomeForma.value;
+    const permite_parcelamento = inputParcelamento.checked;
+    const dia_fechamento = permite_parcelamento ? inputDia.value : null;
+
+    if (!nome) {
+        mostrarToast("Digite um nome válido", "warning");
+        return;
+    }
+
+    await fetch(`/formas-pagamento/${formaEditandoId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, permite_parcelamento, dia_fechamento })
+    });
+
+    mostrarToast("Forma atualizada!", "success");
+
+    modalEditarForma.classList.remove("ativo");
+
+    await renderizarFormasModal();
+    await carregarFormasPagamento();
+};
+
+document.getElementById("btn-cancelar-forma").onclick = () => {
+    modalEditarForma.classList.remove("ativo");
+};
+
+modalEditarForma.addEventListener("click", (e) => {
+    if (e.target === modalEditarForma) {
+        modalEditarForma.classList.remove("ativo");
+    }
+});
+
+async function excluirForma(id) {
+    if (!confirm("Deseja excluir esta forma?")) return;
+
+    await fetch(`/formas-pagamento/${id}`, {
+        method: "DELETE"
+    });
+
+    mostrarToast("Forma excluída!", "success");
+
+    renderizarFormasModal();
+    carregarFormasPagamento();
+}
 // ================= TIPOS =================
 
 const formTipo = document.getElementById("form-tipo");
@@ -122,37 +242,46 @@ async function carregarTipos() {
 const formForma = document.getElementById("form-forma");
 let formasCache = [];
 
-if (formForma) {
-    formForma.addEventListener("submit", async (e) => {
-        e.preventDefault();
+formForma.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-        const nome = document.getElementById("nova-forma").value;
-        const permite_parcelamento = document.getElementById("permite-parcelamento").checked;
-        const dia_fechamento = permite_parcelamento
-            ? document.getElementById("dia-fechamento").value
-            : null;
-        if (!nome) {
-            mostrarToast("Digite um nome válido", "warning");
-            return;
-        }
+    const nome = document.getElementById("nova-forma").value;
+    const permite_parcelamento = document.getElementById("permite-parcelamento").checked;
+    const dia_fechamento = permite_parcelamento
+        ? document.getElementById("dia-fechamento").value
+        : null;
 
-        if (formasCache.some(f => f.nome.toLowerCase() === nome.toLowerCase())) {
-            mostrarToast("Forma já cadastrada!", "error");
-            return;
-        }
+    const idEditando = formForma.dataset.editando;
 
-        await fetch("http://127.0.0.1:5000/formas-pagamento", {
+    if (idEditando) {
+        // EDITAR
+        await fetch(`/formas-pagamento/${idEditando}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome, permite_parcelamento, dia_fechamento })
+        });
+
+        mostrarToast("Forma atualizada!", "success");
+
+    } else {
+        // CRIAR
+        await fetch(`/formas-pagamento`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nome, permite_parcelamento, dia_fechamento })
         });
 
-        formForma.reset();
-        await carregarFormasPagamento();
-
         mostrarToast("Forma cadastrada!", "success");
-    });
-}
+    }
+
+    // 🔥 RESET TOTAL (ESSENCIAL)
+    formForma.reset();
+    delete formForma.dataset.editando;
+
+    document.getElementById("grupo-fechamento").style.display = "none";
+
+    await carregarFormasPagamento();
+});
 
 async function carregarFormasPagamento() {
     formasCache = await obterFormasPagamento();
