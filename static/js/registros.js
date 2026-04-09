@@ -6,6 +6,7 @@ const editFormaPagamento = document.getElementById("edit-forma-pagamento");
 const editGrupoParcelas = document.getElementById("edit-grupo-parcelas");
 const editValor = document.getElementById("edit-valor");
 const editData = document.getElementById("edit-data");
+const filtroTipo = document.getElementById("filtro-tipo");
 
 const btnSalvar = document.getElementById("btn-salvar");
 const btnCancelar = document.getElementById("btn-cancelar");
@@ -94,10 +95,31 @@ if (filtroMes) {
 if (btnLimpar) {
     btnLimpar.addEventListener("click", () => {
         filtroMes.value = "";
+        filtroTipo.value = "";
         carregarRegistros(true);
     });
 }
 
+async function carregarFiltroTipos() {
+    const tipos = await obterTipos();
+
+    if (!filtroTipo) return;
+
+    filtroTipo.innerHTML = `<option value="">Todos os tipos</option>`;
+
+    tipos.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t.id;
+        opt.textContent = t.nome;
+        filtroTipo.appendChild(opt);
+    });
+}
+
+if (filtroTipo) {
+    filtroTipo.addEventListener("change", () => {
+        carregarRegistros(true);
+    });
+}
 // ================= RENDERIZAÇÃO =================
 
 async function carregarRegistros(animar = false) {
@@ -108,6 +130,7 @@ async function carregarRegistros(animar = false) {
     const receitas = await obterReceitas();
     const despesas = await obterDespesas();
     const mesSelecionado = filtroMes ? filtroMes.value : "";
+    const tipoSelecionado = filtroTipo ? filtroTipo.value: "";
 
     let totalReceitas = 0;
     let totalDespesas = 0;
@@ -175,6 +198,12 @@ receitas.forEach(receita => {
                 return;
             }
         }
+
+        if (tipoSelecionado) {
+            if (despesa.tipo_id != tipoSelecionado) {
+                return;
+            }
+}
 
         contadorDespesas++;
 
@@ -419,3 +448,4 @@ btnCancelar.onclick = () => {
 // ================= INICIALIZAÇÃO =================
 
 carregarRegistros(true);
+carregarFiltroTipos();

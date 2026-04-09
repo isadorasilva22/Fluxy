@@ -91,6 +91,12 @@ body {
     outline: none;
 }
 
+.filtro select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
 .btn-limpar {
     background-color: #f4c542;
     border: none;
