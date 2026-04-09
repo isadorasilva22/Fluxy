@@ -112,6 +112,10 @@ body {
     transform: translateY(-1px);
 }
 
+th {
+    cursor: pointer;
+}
+
 /* ================= TABELA ================= */
 
 .tabela {

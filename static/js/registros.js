@@ -14,6 +14,96 @@ const btnCancelar = document.getElementById("btn-cancelar");
 let registroAtual = null;
 let tipoAtual = null;
 
+let ordenacaoReceitas = {
+    campo: null,
+    direcao: "asc"
+};
+
+let ordenacaoDespesas = {
+    campo: null,
+    direcao: "asc"
+};
+
+
+// ================= ORDENAÇÃO =================
+
+document.querySelectorAll("th[data-campo]").forEach(th => {
+    th.addEventListener("click", () => {
+
+        const campo = th.dataset.campo;
+        const tabela = th.closest("table").id;
+
+        let ordenacaoAtual;
+
+        if (tabela === "tabela-receitas") {
+            ordenacaoAtual = ordenacaoReceitas;
+        } else {
+            ordenacaoAtual = ordenacaoDespesas;
+        }
+
+        if (ordenacaoAtual.campo === campo) {
+            ordenacaoAtual.direcao = ordenacaoAtual.direcao === "asc" ? "desc" : "asc";
+        } else {
+            ordenacaoAtual.campo = campo;
+            ordenacaoAtual.direcao = "asc";
+        }
+
+        atualizarSetas();
+        carregarRegistros(true);
+    });
+});
+
+function ordenarLista(lista, ordenacao) {
+    if (!ordenacao.campo || !lista) return lista || [];
+
+    return [...lista].sort((a, b) => {
+
+        let valA = a[ordenacao.campo];
+        let valB = b[ordenacao.campo];
+
+        // trata null/undefined
+        valA = valA ?? "";
+        valB = valB ?? "";
+
+        // DATA
+        if (ordenacao.campo === "data") {
+            const dA = new Date(valA);
+            const dB = new Date(valB);
+
+            return ordenacao.direcao === "asc" ? dA - dB : dB - dA;
+        }
+
+        // VALOR
+        if (ordenacao.campo === "valor") {
+            return ordenacao.direcao === "asc"
+                ? Number(valA) - Number(valB)
+                : Number(valB) - Number(valA);
+        }
+
+        // TEXTO (tipo, forma, descricao)
+        return ordenacao.direcao === "asc"
+            ? String(valA).localeCompare(String(valB))
+            : String(valB).localeCompare(String(valA));
+    });
+}
+
+function atualizarSetas() {
+    document.querySelectorAll("th[data-campo]").forEach(th => {
+        th.innerHTML = th.dataset.label;
+    });
+
+    document.querySelectorAll("#tabela-receitas th[data-campo]").forEach(th => {
+        if (th.dataset.campo === ordenacaoReceitas.campo) {
+            th.innerHTML += ordenacaoReceitas.direcao === "asc" ? " ↑" : " ↓";
+        }
+    });
+
+    document.querySelectorAll("#tabela-despesas th[data-campo]").forEach(th => {
+        if (th.dataset.campo === ordenacaoDespesas.campo) {
+            th.innerHTML += ordenacaoDespesas.direcao === "asc" ? " ↑" : " ↓";
+        }
+    });
+}
 // ================= DADOS =================
 
 async function obterReceitas() {
@@ -127,8 +217,12 @@ async function carregarRegistros(animar = false) {
     listaReceitas.innerHTML = "";
     listaDespesas.innerHTML = "";
 
-    const receitas = await obterReceitas();
-    const despesas = await obterDespesas();
+    let receitas = await obterReceitas();
+    let despesas = await obterDespesas();
+
+    // aplica ordenação AQUI (depois de buscar)
+    receitas = ordenarLista(receitas, ordenacaoReceitas);
+    despesas = ordenarLista(despesas, ordenacaoDespesas);
     const mesSelecionado = filtroMes ? filtroMes.value : "";
     const tipoSelecionado = filtroTipo ? filtroTipo.value: "";
 
