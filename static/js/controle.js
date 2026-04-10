@@ -37,11 +37,28 @@ const formDespesa = document.getElementById("form-despesa");
 // ================= RESUMO =================
 
 async function atualizarResumo() {
+
     const receitas = await obterReceitas();
     const despesas = await obterDespesas();
 
-    const totalReceitas = receitas.reduce((acc, item) => acc + Number(item.valor), 0);
-    const totalDespesas = despesas.reduce((acc, item) => acc + Number(item.valor), 0);
+    const hoje = new Date();
+    const mesAtual = hoje.toISOString().slice(0, 7);
+
+    const receitasMes = receitas.filter(r => 
+        r.data && r.data.startsWith(mesAtual)
+    );
+
+    const despesasMes = despesas.filter(d => 
+        d.data && d.data.startsWith(mesAtual)
+    );
+
+    const totalReceitas = receitasMes.reduce(
+        (acc, item) => acc + Number(item.valor), 0
+    );
+
+    const totalDespesas = despesasMes.reduce(
+        (acc, item) => acc + Number(item.valor), 0
+    );
 
     const saldo = totalReceitas - totalDespesas;
 
@@ -50,6 +67,13 @@ async function atualizarResumo() {
     saldoEl.textContent = formatarMoeda(saldo);
 }
 
+const mesAtualEl = document.getElementById("mes-atual");
+
+const hoje = new Date();
+const mesNome = hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+mesAtualEl.textContent = mesNome;
+
 // ================= ABAS =================
 
 function trocarAba(nomeAba, botao) {
@@ -57,17 +81,14 @@ function trocarAba(nomeAba, botao) {
     const abas = document.querySelectorAll(".aba-conteudo");
     abas.forEach(aba => aba.classList.remove("ativa"));
 
-    // Remove ativo dos botões
     const botoes = document.querySelectorAll(".aba-btn");
     botoes.forEach(btn => btn.classList.remove("ativa"));
 
-    // Mostra a aba selecionada
     const abaSelecionada = document.getElementById(`aba-${nomeAba}`);
     if (abaSelecionada) {
         abaSelecionada.classList.add("ativa");
     }
 
-    // Ativa o botão clicado
     if (botao) {
         botao.classList.add("ativa");
     }
@@ -202,6 +223,7 @@ async function excluirForma(id) {
     renderizarFormasModal();
     carregarFormasPagamento();
 }
+
 // ================= TIPOS =================
 
 const formTipo = document.getElementById("form-tipo");
@@ -263,7 +285,6 @@ formForma.addEventListener("submit", async (e) => {
     const idEditando = formForma.dataset.editando;
 
     if (idEditando) {
-        // EDITAR
         await fetch(`/formas-pagamento/${idEditando}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -273,7 +294,6 @@ formForma.addEventListener("submit", async (e) => {
         mostrarToast("Forma atualizada!", "success");
 
     } else {
-        // CRIAR
         await fetch(`/formas-pagamento`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -283,7 +303,7 @@ formForma.addEventListener("submit", async (e) => {
         mostrarToast("Forma cadastrada!", "success");
     }
 
-    // 🔥 RESET TOTAL (ESSENCIAL)
+    // RESET TOTAL
     formForma.reset();
     delete formForma.dataset.editando;
 
