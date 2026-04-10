@@ -22,7 +22,7 @@
         </a>
     </header>
 
-    <!-- FILTRO GLOBAL -->
+    <!-- FILTRO -->
 <div class="card">
     <div class="filtro">
         <label for="filtro-mes">Filtrar por mês:</label>
@@ -72,6 +72,8 @@
 
 </div>
 
+    <!-- EDITAR DESPESAS -->
+
 <div id="modal-editar" class="modal">
   <div class="modal-conteudo">
     <h3>Editar Registro</h3>
@@ -112,6 +114,28 @@
     <div class="modal-botoes">
       <button id="btn-salvar">Salvar</button>
       <button id="btn-cancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDITAR RECEITA -->
+
+<div id="modal-editar-receita" class="modal">
+  <div class="modal-conteudo">
+    <h3>Editar Receita</h3>
+
+    <label>Descrição</label>
+    <input type="text" id="edit-receita-descricao">
+
+    <label>Valor</label>
+    <input type="number" id="edit-receita-valor">
+
+    <label>Data</label>
+    <input type="date" id="edit-receita-data">
+
+    <div class="modal-botoes">
+      <button id="btn-salvar-receita">Salvar</button>
+      <button id="btn-cancelar-receita">Cancelar</button>
     </div>
   </div>
 </div>

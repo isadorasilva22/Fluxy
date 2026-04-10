@@ -302,3 +302,19 @@ th {
   border-radius: 8px;
   cursor: pointer;
 }
+
+#btn-salvar-receita {
+  background: #f8c8dc;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#btn-cancelar-receita {
+  background: #eee;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}

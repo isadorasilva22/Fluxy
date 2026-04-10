@@ -3,7 +3,6 @@ from flask_cors import CORS
 import psycopg2
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
-from calendar import monthrange
 
 app = Flask(__name__)
 CORS(app)
@@ -103,7 +102,6 @@ def excluir_receita(id):
 
     return jsonify({"mensagem": "Receita excluída"})
 
-
 # DESPESAS
 
 @app.route("/despesas", methods=["GET"])
@@ -126,7 +124,6 @@ def listar_despesas():
 
     cur.close()
     return jsonify(despesas)
-
 
 @app.route("/despesas", methods=["POST"])
 def adicionar_despesa():
@@ -281,7 +278,6 @@ def listar_tipos():
 
     return jsonify(tipos)
 
-
 # FORMAS DE PAGAMENTO
 
 @app.route("/formas-pagamento", methods=["POST"])
@@ -387,7 +383,6 @@ def excluir_forma(id):
 
     return jsonify({"mensagem": "Forma excluída"})
 
-
 # LIMITES BANCARIOS
 
 @app.route("/limites", methods=["POST"])
@@ -408,14 +403,12 @@ def criar_limite():
     existente = cur.fetchone()
 
     if existente:
-        # UPDATE
         cur.execute("""
             UPDATE limites
             SET valor = %s
             WHERE forma_pagamento_id = %s
         """, (valor, forma_pagamento_id))
     else:
-        # INSERT
         cur.execute("""
             INSERT INTO limites (forma_pagamento_id, valor)
             VALUES (%s, %s)
@@ -452,7 +445,6 @@ def calcular_limites_mensais():
         forma_id, nome, limite, dia_fechamento = f
 
         if dia_fechamento is None:
-            # fallback: comportamento antigo
             inicio = hoje.replace(day=1)
             fim = hoje
         else:

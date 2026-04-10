@@ -1,4 +1,4 @@
-// ================= MODAL =================
+// ================= VARIÁVEIS =================
 
 const modal = document.getElementById("modal-editar");
 const editDescricao = document.getElementById("edit-descricao");
@@ -7,6 +7,14 @@ const editGrupoParcelas = document.getElementById("edit-grupo-parcelas");
 const editValor = document.getElementById("edit-valor");
 const editData = document.getElementById("edit-data");
 const filtroTipo = document.getElementById("filtro-tipo");
+
+const modalReceita = document.getElementById("modal-editar-receita");
+const editReceitaDescricao = document.getElementById("edit-receita-descricao");
+const editReceitaValor = document.getElementById("edit-receita-valor");
+const editReceitaData = document.getElementById("edit-receita-data");
+
+const btnSalvarReceita = document.getElementById("btn-salvar-receita");
+const btnCancelarReceita = document.getElementById("btn-cancelar-receita");
 
 const btnSalvar = document.getElementById("btn-salvar");
 const btnCancelar = document.getElementById("btn-cancelar");
@@ -23,7 +31,6 @@ let ordenacaoDespesas = {
     campo: null,
     direcao: "asc"
 };
-
 
 // ================= ORDENAÇÃO =================
 
@@ -65,7 +72,6 @@ function ordenarLista(lista, ordenacao) {
         valA = valA ?? "";
         valB = valB ?? "";
 
-        // DATA
         if (ordenacao.campo === "data") {
             const dA = new Date(valA);
             const dB = new Date(valB);
@@ -73,14 +79,12 @@ function ordenarLista(lista, ordenacao) {
             return ordenacao.direcao === "asc" ? dA - dB : dB - dA;
         }
 
-        // VALOR
         if (ordenacao.campo === "valor") {
             return ordenacao.direcao === "asc"
                 ? Number(valA) - Number(valB)
                 : Number(valB) - Number(valA);
         }
 
-        // TEXTO (tipo, forma, descricao)
         return ordenacao.direcao === "asc"
             ? String(valA).localeCompare(String(valB))
             : String(valB).localeCompare(String(valA));
@@ -104,6 +108,7 @@ function atualizarSetas() {
         }
     });
 }
+
 // ================= DADOS =================
 
 async function obterReceitas() {
@@ -210,6 +215,7 @@ if (filtroTipo) {
         carregarRegistros(true);
     });
 }
+
 // ================= RENDERIZAÇÃO =================
 
 async function carregarRegistros(animar = false) {
@@ -234,6 +240,7 @@ async function carregarRegistros(animar = false) {
     if (animar) {
     animarTabelas();
     }
+
 
 // ===== RECEITAS =====
 
@@ -284,24 +291,26 @@ receitas.forEach(receita => {
         listaReceitas.appendChild(trTotalReceita);
     }
 
-    // ===== DESPESAS =====
-    despesas.forEach(despesa => {
 
-        if (mesSelecionado) {
-            if (!despesa.data || !despesa.data.startsWith(mesSelecionado)) {
-                return;
-            }
+// ===== DESPESAS =====
+
+despesas.forEach(despesa => {
+
+    if (mesSelecionado) {
+        if (!despesa.data || !despesa.data.startsWith(mesSelecionado)) {
+            return;
         }
+    }
 
-        if (tipoSelecionado) {
-            if (despesa.tipo_id != tipoSelecionado) {
-                return;
-            }
-}
+    if (tipoSelecionado) {
+        if (despesa.tipo_id != tipoSelecionado) {
+            return;
+        }
+    }
 
-        contadorDespesas++;
+    contadorDespesas++;
 
-        const tr = document.createElement("tr");
+    const tr = document.createElement("tr");
 
         tr.innerHTML = `
         <td>${formatarData(despesa.data)}</td>
@@ -342,8 +351,7 @@ receitas.forEach(receita => {
 
     // ===== ANIMAÇÃO =====
     if (animar) {
-        animarTabela(tabelaReceitas);
-        animarTabela(tabelaDespesas);
+        animarTabelas();
     }
 }
 
@@ -402,23 +410,46 @@ async function excluirReceita(id) {
     }
 }
 
-
 async function editarReceita(id) {
 
     const receitas = await obterReceitas();
     const receita = receitas.find(r => r.id === id);
 
     registroAtual = id;
-    tipoAtual = "receita";
 
-    editDescricao.value = receita.descricao;
-    editValor.value = receita.valor;
-    editData.value = receita.data || "";
+    editReceitaDescricao.value = receita.descricao;
+    editReceitaValor.value = receita.valor;
+    editReceitaData.value = receita.data || "";
 
-    editFormaPagamento.style.display = "none";
-    editGrupoParcelas.style.display = "none";
-    modal.style.display = "flex";
+    modalReceita.style.display = "flex";
 }
+
+btnSalvarReceita.onclick = async () => {
+
+    const dados = {
+        descricao: editReceitaDescricao.value,
+        valor: editReceitaValor.value,
+        data: editReceitaData.value
+    };
+
+    const response = await fetch(`/receitas/${registroAtual}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dados)
+    });
+
+    if (!response.ok) {
+        alert("Erro ao atualizar receita");
+        return;
+    }
+
+    modalReceita.style.display = "none";
+    carregarRegistros(true);
+};
+
+btnCancelarReceita.onclick = () => {
+    modalReceita.style.display = "none";
+};
 
 // ============ AÇÕES DESPESAS ================== //
 
