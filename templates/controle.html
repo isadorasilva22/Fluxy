@@ -33,6 +33,9 @@
     <button class="aba-btn" onclick="trocarAba('limites', this)">
         💳 Limites e Despesas
     </button>
+    <button class="aba-btn" onclick="trocarAba('graficos', this)">
+        📈 Gráficos
+    </button>
 </div>
 
 <!-- ================= ABA 1 ================= -->
@@ -195,7 +198,64 @@
     </div>
 </div>
 
+<!-- ================= ABA 3 ================= -->
+
+<div id="aba-graficos" class="aba-conteudo">
+
+<div class="grid-graficos">
+
+    <!-- 1. RESUMO -->
+    <div class="grafico-card">
+        <h3>Receitas X Despesas</h3>
+        <div class="filtro-inline">
+            <input type="month" id="filtro-mes-resumo">
+            <button onclick="limparFiltro('resumo')">Limpar</button>
+        </div>
+        <div class="grafico-box">
+            <canvas id="graficoResumo"></canvas>
+        </div>
+    </div>
+
+    <!-- 2. MENSAL -->
+    <div class="grafico-card">
+        <h3>Despesas Mensais</h3>
+        <div class="filtro-inline">
+            <input type="number" id="filtro-ano-mensal" placeholder="Ano (ex: 2026)">
+            <button onclick="limparFiltro('mensal')">Limpar</button>
+        </div>
+        <div class="grafico-box">
+            <canvas id="graficoMensal"></canvas>
+        </div>
+    </div>
+
+    <!-- 3. POR TIPO -->
+    <div class="grafico-card">
+        <h3>Gastos por Categoria</h3>
+        <div class="filtro-inline">
+            <input type="month" id="filtro-mes-tipo">
+            <button onclick="limparFiltro('tipo')">Limpar</button>
+        </div>
+        <div class="grafico-box">
+            <canvas id="graficoTipo"></canvas>
+        </div>
+    </div>
+
+    <!-- 4. POR FORMA -->
+    <div class="grafico-card">
+        <h3>Gastos por Forma de Pagamento</h3>
+        <div class="filtro-inline">
+            <input type="month" id="filtro-mes-forma">
+            <button onclick="limparFiltro('forma')">Limpar</button>
+        </div>
+        <div class="grafico-box">
+            <canvas id="graficoForma"></canvas>
+        </div>
+    </div>
+
+</div>
+
 <div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/controle.js') }}"></script>
 </body>
 </html>

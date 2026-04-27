@@ -77,7 +77,6 @@ mesAtualEl.textContent = mesNome;
 // ================= ABAS =================
 
 function trocarAba(nomeAba, botao) {
-    // Esconde todas as abas
     const abas = document.querySelectorAll(".aba-conteudo");
     abas.forEach(aba => aba.classList.remove("ativa"));
 
@@ -89,8 +88,11 @@ function trocarAba(nomeAba, botao) {
         abaSelecionada.classList.add("ativa");
     }
 
-    if (botao) {
-        botao.classList.add("ativa");
+    if (nomeAba === "graficos") {
+        carregarResumo();
+        carregarMensal();
+        carregarTipo();
+        carregarForma();
     }
 }
 
@@ -525,6 +527,110 @@ if (checkboxParcelamento) {
     });
 }
 
+// ================= GRÁFICOS =================
+async function carregarResumo() {
+    const mes = document.getElementById("filtro-mes-resumo").value || "";
+    const url = mes ? `?mes=${mes}` : "";
+
+    const dados = await fetch(`/grafico/resumo${url}`).then(r => r.json());
+
+    renderChart("graficoResumo", "pie",
+        ["Receitas", "Despesas"],
+        [dados.receitas, dados.despesas]
+    );
+}
+
+async function carregarMensal() {
+    const ano = document.getElementById("filtro-ano-mensal").value || "";
+    const url = ano ? `?ano=${ano}` : "";
+
+    const dados = await fetch(`/grafico/despesas-mensais${url}`).then(r => r.json());
+
+    renderChart("graficoMensal", "bar",
+        dados.meses.map(m => `Mês ${m}`),
+        dados.valores
+    );
+}
+
+async function carregarTipo() {
+    const mes = document.getElementById("filtro-mes-tipo").value || "";
+    const url = mes ? `?mes=${mes}` : "";
+
+    const dados = await fetch(`/grafico/por-tipo${url}`).then(r => r.json());
+
+    renderChart("graficoTipo", "pie",
+        dados.labels,
+        dados.valores
+    );
+}
+
+async function carregarForma() {
+    const mes = document.getElementById("filtro-mes-forma").value || "";
+    const url = mes ? `?mes=${mes}` : "";
+
+    const dados = await fetch(`/grafico/por-forma${url}`).then(r => r.json());
+
+    renderChart("graficoForma", "pie",
+        dados.labels,
+        dados.valores
+    );
+}
+
+function limparFiltro(tipo) {
+
+    if (tipo === "resumo") {
+        document.getElementById("filtro-mes-resumo").value = "";
+        carregarResumo();
+    }
+
+    if (tipo === "mensal") {
+        document.getElementById("filtro-ano-mensal").value = "";
+        carregarMensal();
+    }
+
+    if (tipo === "tipo") {
+        document.getElementById("filtro-mes-tipo").value = "";
+        carregarTipo();
+    }
+
+    if (tipo === "forma") {
+        document.getElementById("filtro-mes-forma").value = "";
+        carregarForma();
+    }
+}
+
+document.getElementById("filtro-mes-resumo").addEventListener("change", carregarResumo);
+document.getElementById("filtro-ano-mensal").addEventListener("change", carregarMensal);
+document.getElementById("filtro-mes-tipo").addEventListener("change", carregarTipo);
+document.getElementById("filtro-mes-forma").addEventListener("change", carregarForma);
+
+const charts = {}; // guarda instâncias para não duplicar
+
+function renderChart(id, tipo, labels, dados) {
+    const ctx = document.getElementById(id);
+
+    if (!ctx) return;
+
+    // Se já existir um gráfico nesse canvas, destrói antes
+    if (charts[id]) {
+        charts[id].destroy();
+    }
+
+    charts[id] = new Chart(ctx, {
+        type: tipo,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Valores",
+                data: dados
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
 // ================= INIT =================
 
 async function init() {

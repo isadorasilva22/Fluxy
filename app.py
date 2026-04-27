@@ -478,6 +478,121 @@ def calcular_limites_mensais():
 
     return jsonify(resposta)
 
+# GRÁFICOS
+
+@app.route("/grafico/resumo")
+def grafico_resumo():
+    mes = request.args.get("mes")
+
+    cur = conn.cursor()
+
+    filtro = ""
+    params = []
+
+    if mes:
+        filtro = "WHERE TO_CHAR(data, 'YYYY-MM') = %s"
+        params.append(mes)
+
+    cur.execute(f"SELECT COALESCE(SUM(valor),0) FROM receitas {filtro}", params)
+    receitas = cur.fetchone()[0]
+
+    cur.execute(f"SELECT COALESCE(SUM(valor),0) FROM despesas {filtro}", params)
+    despesas = cur.fetchone()[0]
+
+    cur.close()
+
+    return jsonify({
+        "receitas": float(receitas),
+        "despesas": float(despesas)
+    })
+
+@app.route("/grafico/despesas-mensais")
+def grafico_mensal():
+    ano = request.args.get("ano")
+
+    cur = conn.cursor()
+
+    if ano:
+        cur.execute("""
+            SELECT EXTRACT(MONTH FROM data), SUM(valor)
+            FROM despesas
+            WHERE EXTRACT(YEAR FROM data) = %s
+            GROUP BY 1
+            ORDER BY 1
+        """, (ano,))
+    else:
+        cur.execute("""
+            SELECT EXTRACT(MONTH FROM data), SUM(valor)
+            FROM despesas
+            GROUP BY 1
+            ORDER BY 1
+        """)
+
+    dados = cur.fetchall()
+    cur.close()
+
+    meses = [int(d[0]) for d in dados]
+    valores = [float(d[1]) for d in dados]
+
+    return jsonify({"meses": meses, "valores": valores})
+
+@app.route("/grafico/por-tipo")
+def grafico_tipo():
+    mes = request.args.get("mes")
+
+    cur = conn.cursor()
+
+    filtro = ""
+    params = []
+
+    if mes:
+        filtro = "WHERE TO_CHAR(d.data, 'YYYY-MM') = %s"
+        params.append(mes)
+
+    cur.execute(f"""
+        SELECT t.nome, SUM(d.valor)
+        FROM despesas d
+        JOIN tipos_despesa t ON d.tipo_id = t.id
+        {filtro}
+        GROUP BY t.nome
+    """, params)
+
+    dados = cur.fetchall()
+    cur.close()
+
+    return jsonify({
+        "labels": [d[0] for d in dados],
+        "valores": [float(d[1]) for d in dados]
+    })
+
+@app.route("/grafico/por-forma")
+def grafico_forma():
+    mes = request.args.get("mes")
+
+    cur = conn.cursor()
+
+    filtro = ""
+    params = []
+
+    if mes:
+        filtro = "WHERE TO_CHAR(d.data, 'YYYY-MM') = %s"
+        params.append(mes)
+
+    cur.execute(f"""
+        SELECT COALESCE(f.nome,'Sem forma'), SUM(d.valor)
+        FROM despesas d
+        LEFT JOIN formas_pagamento f ON d.forma_pagamento_id = f.id
+        {filtro}
+        GROUP BY f.nome
+    """, params)
+
+    dados = cur.fetchall()
+    cur.close()
+
+    return jsonify({
+        "labels": [d[0] for d in dados],
+        "valores": [float(d[1]) for d in dados]
+    })
 ###
 
 if __name__ == "__main__":

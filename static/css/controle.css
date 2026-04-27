@@ -323,3 +323,54 @@ button:hover {
 .toast.success { background: #4caf50; }
 .toast.error { background: #f44336; }
 .toast.warning { background: #ff9800; }
+
+/* GRÁFICOS */
+
+.grid-graficos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px; /* 👈 mais espaço entre os cards */
+    margin-top: 20px;
+}
+
+.grafico-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.grafico-card h3 {
+    color: #c94f7c;
+    text-align: center;
+}
+
+.grafico-box {
+    width: 100%;
+    max-width: 350px; /* 👈 limita tamanho */
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.filtro-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center; /* centraliza no card */
+    margin-bottom: 10px;
+}
+
+.filtro-inline input {
+    flex: 1;
+    max-width: 180px; /* controla o tamanho do campo */
+}
+
+.filtro-inline button {
+    white-space: nowrap; /* evita quebrar o texto */
+}
