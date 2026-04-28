@@ -58,6 +58,19 @@ body {
     transform: translateY(-2px);
 }
 
+.btn-logout {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-logout:hover {
+    background: #e60000;
+}
+
 /* ================= ABAS ================= */
 
 .abas {

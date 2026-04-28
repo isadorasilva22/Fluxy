@@ -15,12 +15,11 @@
         <p>Organize suas finanças de forma leve e simples</p>
     </div>
     <div class="botoes">
-        <a href="{{ url_for('index') }}" class="btn-registros">
-        🏠 Home
-        </a>
-
         <a href="{{ url_for('registros') }}" class="btn-registros">
         📋 Ver Despesas
+        </a>
+        <a class="btn-logout" onclick="logout()">
+        🚪 Sair
         </a>
     </div>
 </header>

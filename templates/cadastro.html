@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro - Fluxy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link rel='icon' type="image/icon" href="{{ url_for('static', filename='src/cadastro.png') }}">
+</head>
+<body>
+
+<div class="login-container">
+    <div class="login-box">
+        <h2>Criar Conta</h2>
+
+        <form id="cadastroForm">
+            <input type="text" id="nome" placeholder="Nome" required>
+            <input type="email" id="email" placeholder="E-mail" required>
+            <input type="password" id="senha" placeholder="Senha" required>
+
+            <button type="submit">Cadastrar</button>
+        </form>
+
+        <p id="mensagem" class="erro"></p>
+
+        <p class="cadastro">
+            Já tem conta? <a href="{{ url_for('login_page') }}">Entrar</a>
+        </p>
+    </div>
+</div>
+
+<script>
+document.getElementById("cadastroForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const nome = document.getElementById("nome").value;
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+
+    const res = await fetch("/usuarios", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ nome, email, senha })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+        document.getElementById("mensagem").style.color = "green";
+        document.getElementById("mensagem").innerText = "Conta criada com sucesso! Entrando no sistema...";
+
+        setTimeout(() => {
+            window.location.href = "/controle";
+        }, 1500);
+
+    } else {
+        document.getElementById("mensagem").style.color = "red";
+        document.getElementById("mensagem").innerText = data.erro || "Erro ao cadastrar";
+    }
+});
+</script>
+
+</body>
+</html>

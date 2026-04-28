@@ -1,27 +1,27 @@
 // ================= API =================
 
 async function obterReceitas() {
-    const resposta = await fetch("http://127.0.0.1:5000/receitas");
+    const resposta = await fetch("/receitas", {credentials: "include"});
     return await resposta.json();
 }
 
 async function obterDespesas() {
-    const resposta = await fetch("http://127.0.0.1:5000/despesas");
+    const resposta = await fetch("/despesas", {credentials: "include"});
     return await resposta.json();
 }
 
 async function obterTipos() {
-    const resposta = await fetch("http://127.0.0.1:5000/tipos");
+    const resposta = await fetch("/tipos", {credentials: "include"});
     return await resposta.json();
 }
 
 async function obterFormasPagamento() {
-    const res = await fetch("http://127.0.0.1:5000/formas-pagamento");
+    const res = await fetch("/formas-pagamento", {credentials: "include"});
     return await res.json();
 }
 
 async function obterLimitesMensais() {
-    const res = await fetch("http://127.0.0.1:5000/limites/mensal");
+    const res = await fetch("/limites/mensal", {credentials: "include"});
     return await res.json();
 }
 
@@ -75,6 +75,26 @@ const mesNome = hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric
 mesAtualEl.textContent = mesNome;
 
 // ================= ABAS =================
+async function logout() {
+    await fetch("/logout", {
+        method: "GET",
+        credentials: "include"
+    });
+
+    window.location.href = "/login-page";
+}
+
+async function verificarLogin() {
+    const res = await fetch("/me", {
+        credentials: "include"
+    });
+
+    if (!res.ok) {
+        window.location.href = "/login-page";
+    }
+}
+
+verificarLogin();
 
 function trocarAba(nomeAba, botao) {
     const abas = document.querySelectorAll(".aba-conteudo");
@@ -196,6 +216,7 @@ document.getElementById("btn-salvar-forma").onclick = async () => {
 
     await fetch(`/formas-pagamento/${formaEditandoId}`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome, permite_parcelamento, dia_fechamento })
     });
@@ -223,7 +244,8 @@ async function excluirForma(id) {
     if (!confirm("Deseja excluir esta forma?")) return;
 
     await fetch(`/formas-pagamento/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        credentials: "include"
     });
 
     mostrarToast("Forma excluída!", "success");
@@ -249,6 +271,7 @@ if (formTipo) {
 
         await fetch("http://127.0.0.1:5000/tipos", {
             method: "POST",
+            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nome })
         });
@@ -295,6 +318,7 @@ formForma.addEventListener("submit", async (e) => {
     if (idEditando) {
         await fetch(`/formas-pagamento/${idEditando}`, {
             method: "PUT",
+            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nome, permite_parcelamento, dia_fechamento })
         });
@@ -304,6 +328,7 @@ formForma.addEventListener("submit", async (e) => {
     } else {
         await fetch(`/formas-pagamento`, {
             method: "POST",
+            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nome, permite_parcelamento, dia_fechamento })
         });
@@ -393,6 +418,7 @@ if (formLimite) {
 
         await fetch("http://127.0.0.1:5000/limites", {
             method: "POST",
+            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ forma_pagamento_id, valor })
         });
@@ -483,6 +509,7 @@ if (formReceita) {
 
         await fetch("http://127.0.0.1:5000/receitas", {
             method: "POST",
+            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ descricao, valor, data })
         });
@@ -510,6 +537,7 @@ if (formDespesa) {
 
         await fetch("http://127.0.0.1:5000/despesas", {
             method: "POST",
+            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ descricao, valor, data, tipo_id, forma_pagamento_id, parcelas})
         });
