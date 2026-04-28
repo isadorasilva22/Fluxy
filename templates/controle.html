@@ -36,6 +36,9 @@
     <button class="aba-btn" onclick="trocarAba('graficos', this)">
         📈 Gráficos
     </button>
+    <button class="aba-btn" onclick="trocarAba('faturas', this)">
+        🧾 Faturas
+    </button>
 </div>
 
 <!-- ================= ABA 1 ================= -->
@@ -202,55 +205,114 @@
 
 <div id="aba-graficos" class="aba-conteudo">
 
-<div class="grid-graficos">
+    <div class="grid-graficos">
 
-    <!-- 1. RESUMO -->
-    <div class="grafico-card">
-        <h3>Receitas X Despesas</h3>
-        <div class="filtro-inline">
-            <input type="month" id="filtro-mes-resumo">
-            <button onclick="limparFiltro('resumo')">Limpar</button>
+        <!-- 1. RESUMO -->
+        <div class="grafico-card">
+            <h3>Receitas X Despesas</h3>
+            <div class="filtro-inline">
+                <input type="month" id="filtro-mes-resumo">
+                <button onclick="limparFiltro('resumo')">Limpar</button>
+            </div>
+            <div class="grafico-box">
+                <canvas id="graficoResumo"></canvas>
+            </div>
         </div>
-        <div class="grafico-box">
-            <canvas id="graficoResumo"></canvas>
-        </div>
-    </div>
 
-    <!-- 2. MENSAL -->
-    <div class="grafico-card">
-        <h3>Despesas Mensais</h3>
-        <div class="filtro-inline">
-            <input type="number" id="filtro-ano-mensal" placeholder="Ano (ex: 2026)">
-            <button onclick="limparFiltro('mensal')">Limpar</button>
+        <!-- 2. MENSAL -->
+        <div class="grafico-card">
+            <h3>Despesas Mensais</h3>
+            <div class="filtro-inline">
+                <input type="number" id="filtro-ano-mensal" placeholder="Ano (ex: 2026)">
+                <button onclick="limparFiltro('mensal')">Limpar</button>
+            </div>
+            <div class="grafico-box">
+                <canvas id="graficoMensal"></canvas>
+            </div>
         </div>
-        <div class="grafico-box">
-            <canvas id="graficoMensal"></canvas>
-        </div>
-    </div>
 
-    <!-- 3. POR TIPO -->
-    <div class="grafico-card">
-        <h3>Gastos por Categoria</h3>
-        <div class="filtro-inline">
-            <input type="month" id="filtro-mes-tipo">
-            <button onclick="limparFiltro('tipo')">Limpar</button>
+        <!-- 3. POR TIPO -->
+        <div class="grafico-card">
+            <h3>Gastos por Categoria</h3>
+            <div class="filtro-inline">
+                <input type="month" id="filtro-mes-tipo">
+                <button onclick="limparFiltro('tipo')">Limpar</button>
+            </div>
+            <div class="grafico-box">
+                <canvas id="graficoTipo"></canvas>
+            </div>
         </div>
-        <div class="grafico-box">
-            <canvas id="graficoTipo"></canvas>
-        </div>
-    </div>
 
-    <!-- 4. POR FORMA -->
-    <div class="grafico-card">
-        <h3>Gastos por Forma de Pagamento</h3>
-        <div class="filtro-inline">
-            <input type="month" id="filtro-mes-forma">
-            <button onclick="limparFiltro('forma')">Limpar</button>
+        <!-- 4. POR FORMA -->
+        <div class="grafico-card">
+            <h3>Gastos por Forma de Pagamento</h3>
+            <div class="filtro-inline">
+                <input type="month" id="filtro-mes-forma">
+                <button onclick="limparFiltro('forma')">Limpar</button>
+            </div>
+            <div class="grafico-box">
+                <canvas id="graficoForma"></canvas>
+            </div>
         </div>
-        <div class="grafico-box">
-            <canvas id="graficoForma"></canvas>
-        </div>
+
     </div>
+</div>
+<!-- ================= ABA 4 ================= -->
+
+<div id="aba-faturas" class="aba-conteudo">
+
+    <section class="card">
+        <h2>📊 Visão Geral das Faturas</h2>
+
+        <div class="faturas-grid">
+
+            <div class="fatura-box">
+                <h4>Limite Usado</h4>
+                <strong id="limite-usado">R$ 0,00</strong>
+            </div>
+
+            <div class="fatura-box destaque">
+                <h4>Fatura Atual</h4>
+                <strong id="fatura-atual">R$ 0,00</strong>
+            </div>
+
+            <div class="fatura-box" onclick="abrirProximaFatura()" style="cursor:pointer;">
+                <h4>Próxima Fatura</h4>
+                <strong id="proxima-fatura">R$ 0,00</strong>
+            </div>
+
+        </div>
+        <section class="card">
+            <h3>🧾 Compras da Fatura Atual</h3>
+            <div id="lista-fatura"></div>
+        </section>
+        <div id="modal-proxima" class="modal">
+            <div class="modal-content">
+                <h3>🧾 Próxima Fatura</h3>
+
+                <ul id="lista-proxima-fatura"></ul>
+
+                <button onclick="abrirOutrasFaturas()">
+                    Ver próximas faturas
+                </button>
+
+                <button onclick="fecharModal('modal-proxima')">
+                    Fechar
+                </button>
+            </div>
+        </div>
+        <div id="modal-futuro" class="modal">
+            <div class="modal-content">
+                <h3>📆 Próximas Faturas</h3>
+
+                <ul id="lista-futuro"></ul>
+
+                <button onclick="fecharModal('modal-futuro')">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </section>
 
 </div>
 

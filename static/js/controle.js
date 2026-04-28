@@ -94,6 +94,12 @@ function trocarAba(nomeAba, botao) {
         carregarTipo();
         carregarForma();
     }
+
+    if (nomeAba === "faturas") {
+        carregarFaturas();
+        carregarDetalhesFatura();
+    }
+
 }
 
 // ================= MODAL FORMAS PAGAMENTOS =================
@@ -630,6 +636,108 @@ function renderChart(id, tipo, labels, dados) {
             maintainAspectRatio: false
         }
     });
+}
+
+// ================= FATURAS =================
+
+async function carregarFaturas() {
+    const dados = await fetch("/faturas").then(r => r.json());
+
+    document.getElementById("limite-usado").textContent =
+        formatarMoeda(dados.limite_usado);
+
+    document.getElementById("fatura-atual").textContent =
+        formatarMoeda(dados.fatura_atual);
+
+    document.getElementById("proxima-fatura").textContent =
+        formatarMoeda(dados.proxima_fatura);
+}
+
+async function carregarDetalhesFatura() {
+    const dados = await fetch("/faturas/detalhes").then(r => r.json());
+
+    const container = document.getElementById("lista-fatura");
+
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    if (dados.length === 0) {
+        container.innerHTML = "<p>Nenhuma compra na fatura atual.</p>";
+        return;
+    }
+
+    dados.forEach(item => {
+        const div = document.createElement("div");
+
+        div.classList.add("item-fatura");
+
+        div.innerHTML = `
+            <div>
+                <strong>${item.descricao}</strong>
+                <small>${item.forma} • ${item.data}</small>
+            </div>
+            <span>${formatarMoeda(item.valor)}</span>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+async function abrirProximaFatura() {
+    const res = await fetch("/faturas/proximas");
+    const dados = await res.json();
+
+    const lista = document.getElementById("lista-proxima-fatura");
+    lista.innerHTML = "";
+
+    dados.proxima.forEach(item => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+            ${item.descricao} 
+            <span>${formatarMoeda(item.valor)}</span>
+        `;
+        lista.appendChild(li);
+    });
+
+    document.getElementById("modal-proxima").classList.add("ativo");
+
+    window.futuroFaturas = dados.futuro;
+}
+
+async function abrirOutrasFaturas() {
+    const res = await fetch("/faturas/futuro");
+    const dados = await res.json();
+
+    const container = document.getElementById("lista-futuro");
+    container.innerHTML = "";
+
+    Object.keys(dados).forEach(mes => {
+
+        const titulo = document.createElement("h4");
+
+        const [ano, mesNum] = mes.split("-");
+        const data = new Date(ano, mesNum - 1);
+
+        titulo.innerText = data.toLocaleString("pt-BR", {
+            month: "long",
+            year: "numeric"
+        });
+
+        container.appendChild(titulo);
+
+        dados[mes].forEach(item => {
+            const li = document.createElement("li");
+            li.innerText = `${item.descricao} - R$ ${item.valor.toFixed(2)}`;
+            container.appendChild(li);
+        });
+    });
+
+    document.getElementById("modal-futuro").classList.add("ativo");
+}
+
+function fecharModal(id) {
+    document.getElementById(id).classList.remove("ativo");
 }
 // ================= INIT =================
 

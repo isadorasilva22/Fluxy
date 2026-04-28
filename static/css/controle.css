@@ -141,7 +141,6 @@ body {
     transition: 0.3s ease;
 }
 
-/* Elevação suave */
 .card:hover {
     transform: translateY(-6px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
@@ -189,17 +188,14 @@ body {
     font-size: 1.2rem;
 }
 
-/* Receita em verde pastel */
 #total-receitas {
     color: #3a7d44;
 }
 
-/* Despesa em rosa */
 #total-despesas {
     color: #c94f7c;
 }
 
-/* Saldo neutro */
 #saldo {
     color: #6b4c1e;
 }
@@ -329,7 +325,7 @@ button:hover {
 .grid-graficos {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 30px; /* 👈 mais espaço entre os cards */
+    gap: 30px;
     margin-top: 20px;
 }
 
@@ -351,7 +347,7 @@ button:hover {
 
 .grafico-box {
     width: 100%;
-    max-width: 350px; /* 👈 limita tamanho */
+    max-width: 350px;
     height: 250px;
     display: flex;
     justify-content: center;
@@ -362,7 +358,7 @@ button:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    justify-content: center; /* centraliza no card */
+    justify-content: center;
     margin-bottom: 10px;
 }
 
@@ -373,4 +369,70 @@ button:hover {
 
 .filtro-inline button {
     white-space: nowrap; /* evita quebrar o texto */
+}
+
+/* FATURAS */
+
+.faturas-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.fatura-box {
+    background: #f8f8f8;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.fatura-box h4 {
+    color: #c94f7c;
+    margin-bottom: 10px;
+}
+
+.fatura-box strong {
+    font-size: 1.5rem;
+}
+
+.fatura-box.destaque {
+    background: #ffe4ec;
+    border: 2px solid #c94f7c;
+}
+
+.item-fatura {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.item-fatura small {
+    color: #777;
+    display: block;
+}
+
+.modal-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.modal-content li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+#lista-futuro h4 {
+    margin-top: 15px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    text-transform: capitalize;
+}
+
+#lista-futuro li {
+    margin-left: 10px;
+    padding: 4px 0;
 }

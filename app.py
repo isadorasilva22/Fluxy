@@ -593,6 +593,224 @@ def grafico_forma():
         "labels": [d[0] for d in dados],
         "valores": [float(d[1]) for d in dados]
     })
+
+# FATURAS
+
+@app.route("/faturas")
+def calcular_faturas():
+
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT d.valor, d.data, f.dia_fechamento
+        FROM despesas d
+        JOIN formas_pagamento f ON d.forma_pagamento_id = f.id
+        WHERE f.dia_fechamento IS NOT NULL
+
+        AND NOT EXISTS (
+            SELECT 1 FROM faturas_pagas fp
+            WHERE fp.forma_pagamento_id = d.forma_pagamento_id
+            AND d.data BETWEEN fp.data_inicio AND fp.data_fim
+        )
+    """)
+
+    dados = cur.fetchall()
+
+    hoje = date.today()
+
+    fatura_atual = 0
+    proxima_fatura = 0
+    limite_usado = 0
+
+    for valor, data, dia_fechamento in dados:
+
+        if hoje.day > dia_fechamento:
+            inicio_atual = date(hoje.year, hoje.month, dia_fechamento) + relativedelta(days=1)
+        else:
+            mes_anterior = hoje - relativedelta(months=1)
+            inicio_atual = date(mes_anterior.year, mes_anterior.month, dia_fechamento) + relativedelta(days=1)
+
+        fim_atual = inicio_atual + relativedelta(months=1)
+
+        inicio_proxima = fim_atual
+        fim_proxima = inicio_proxima + relativedelta(months=1)
+
+        if inicio_atual <= data < fim_atual:
+            fatura_atual += float(valor)
+
+        elif inicio_proxima <= data < fim_proxima:
+            proxima_fatura += float(valor)
+
+        if data >= inicio_atual:
+            limite_usado += float(valor)
+
+    cur.close()
+    return jsonify({
+        "limite_usado": limite_usado,
+        "fatura_atual": fatura_atual,
+        "proxima_fatura": proxima_fatura
+    })
+
+@app.route("/faturas/detalhes")
+def detalhes_fatura():
+
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT 
+            d.descricao,
+            d.valor,
+            d.data,
+            f.nome,
+            f.dia_fechamento
+        FROM despesas d
+        JOIN formas_pagamento f
+            ON d.forma_pagamento_id = f.id
+        WHERE f.dia_fechamento IS NOT NULL
+        ORDER BY d.data DESC
+    """)
+
+    dados = cur.fetchall()
+
+    hoje = datetime.today()
+
+    lista = []
+
+    for descricao, valor, data, forma, dia_fechamento in dados:
+
+        if hoje.day > dia_fechamento:
+            inicio_atual = date(hoje.year, hoje.month, dia_fechamento) + relativedelta(days=1)
+        else:
+            mes_anterior = hoje - relativedelta(months=1)
+            inicio_atual = date(mes_anterior.year, mes_anterior.month, dia_fechamento) + relativedelta(days=1)
+
+        fim_atual = inicio_atual + relativedelta(months=1)
+
+        # filtro da fatura atual
+        if inicio_atual <= data < fim_atual:
+            lista.append({
+                "descricao": descricao,
+                "valor": float(valor),
+                "data": str(data),
+                "forma": forma
+            })
+
+    cur.close()
+
+    return jsonify(lista)
+
+@app.route("/faturas/proximas")
+def listar_proximas_faturas():
+
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT d.descricao, d.valor, d.data, f.nome, f.dia_fechamento
+        FROM despesas d
+        JOIN formas_pagamento f ON d.forma_pagamento_id = f.id
+        WHERE f.dia_fechamento IS NOT NULL
+
+        AND NOT EXISTS (
+            SELECT 1 FROM faturas_pagas fp
+            WHERE fp.forma_pagamento_id = d.forma_pagamento_id
+            AND d.data BETWEEN fp.data_inicio AND fp.data_fim
+        )
+        ORDER BY d.data ASC
+    """)
+
+    dados = cur.fetchall()
+
+    hoje = date.today()
+    lista_proxima = []
+    lista_futuro = []
+
+    for descricao, valor, data, forma, dia_fechamento in dados:
+
+        if hoje.day > dia_fechamento:
+            inicio_atual = date(hoje.year, hoje.month, dia_fechamento) + relativedelta(days=1)
+        else:
+            mes_anterior = hoje - relativedelta(months=1)
+            inicio_atual = date(mes_anterior.year, mes_anterior.month, dia_fechamento) + relativedelta(days=1)
+
+        fim_atual = inicio_atual + relativedelta(months=1)
+        inicio_proxima = fim_atual
+        fim_proxima = inicio_proxima + relativedelta(months=1)
+
+        item = {
+            "descricao": descricao,
+            "valor": float(valor),
+            "data": str(data),
+            "forma": forma
+        }
+
+        if inicio_proxima <= data < fim_proxima:
+            lista_proxima.append(item)
+        elif data >= fim_proxima:
+            lista_futuro.append(item)
+
+    cur.close()
+
+    return jsonify({
+        "proxima": lista_proxima,
+        "futuro": lista_futuro
+    })
+
+@app.route("/faturas/futuro")
+def faturas_futuro():
+
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT 
+            d.descricao,
+            d.valor,
+            d.data,
+            f.nome,
+            f.dia_fechamento,
+            f.id
+        FROM despesas d
+        JOIN formas_pagamento f 
+            ON d.forma_pagamento_id = f.id
+        WHERE f.dia_fechamento IS NOT NULL
+        ORDER BY d.data
+    """)
+
+    dados = cur.fetchall()
+
+    hoje = datetime.today()
+
+    faturas_por_mes = {}
+
+    for descricao, valor, data, forma, dia_fechamento, forma_id in dados:
+
+        # 🔹 mesma lógica de cálculo
+        if hoje.day > dia_fechamento:
+            inicio_atual = date(hoje.year, hoje.month, dia_fechamento) + relativedelta(days=1)
+        else:
+            mes_anterior = hoje - relativedelta(months=1)
+            inicio_atual = date(mes_anterior.year, mes_anterior.month, dia_fechamento) + relativedelta(days=1)
+
+        # 🔹 pula fatura atual e próxima (já mostradas)
+        if data < inicio_atual + relativedelta(months=1):
+            continue
+
+        # 🔹 descobre o mês da fatura
+        diferenca_meses = (data.year - inicio_atual.year) * 12 + (data.month - inicio_atual.month)
+        chave_mes = (inicio_atual + relativedelta(months=diferenca_meses)).strftime("%Y-%m")
+
+        if chave_mes not in faturas_por_mes:
+            faturas_por_mes[chave_mes] = []
+
+        faturas_por_mes[chave_mes].append({
+            "descricao": descricao,
+            "valor": float(valor),
+            "data": str(data),
+            "forma": forma
+        })
+
+    cur.close()
+
+    return jsonify(faturas_por_mes)
 ###
 
 if __name__ == "__main__":
