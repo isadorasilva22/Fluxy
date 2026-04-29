@@ -39,7 +39,6 @@ def me():
         return jsonify({"logado": False}), 401
     return jsonify({"logado": True})
 
-
 # ================= USUÁRIOS =================
 
 @app.route("/usuarios", methods=["POST"])
@@ -77,7 +76,6 @@ def cadastrar_usuario():
     session["usuario_id"] = user_id
     return jsonify({"mensagem": "Usuário criado e logado", "id": user_id})
 
-
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json or {}
@@ -103,12 +101,10 @@ def login():
     session["usuario_id"] = user[0]
     return jsonify({"mensagem": "Login realizado"})
 
-
 @app.route("/logout")
 def logout():
     session.clear()
     return jsonify({"mensagem": "Logout realizado"})
-
 
 # ================= PÁGINAS =================
 
@@ -133,7 +129,6 @@ def controle():
 @login_obrigatorio
 def registros():
     return render_template("registros.html")
-
 
 # ================= RECEITAS =================
 
@@ -168,7 +163,6 @@ def listar_receitas():
 def adicionar_receita():
     usuario_id = get_usuario()
 
-    # ✅ CORREÇÃO 3: Validação dos campos obrigatórios
     data = request.json or {}
     descricao = data.get("descricao")
     valor = data.get("valor")
@@ -197,13 +191,11 @@ def adicionar_receita():
         "data": str(nova[3])
     })
 
-
 @app.route("/receitas/<int:id>", methods=["PUT"])
 @login_obrigatorio
 def editar_receita(id):
     usuario_id = get_usuario()
 
-    # ✅ CORREÇÃO 3: Validação dos campos obrigatórios
     data = request.json or {}
     descricao = data.get("descricao")
     valor = data.get("valor")
@@ -224,7 +216,6 @@ def editar_receita(id):
     cur.close()
     conn.close()
     return jsonify({"mensagem": "Receita atualizada"})
-
 
 @app.route("/receitas/<int:id>", methods=["DELETE"])
 @login_obrigatorio
@@ -272,13 +263,11 @@ def listar_despesas():
     conn.close()
     return jsonify(despesas)
 
-
 @app.route("/despesas", methods=["POST"])
 @login_obrigatorio
 def adicionar_despesa():
     usuario_id = get_usuario()
 
-    # ✅ CORREÇÃO 3: Validação dos campos obrigatórios
     data = request.json or {}
     descricao = data.get("descricao")
     valor = data.get("valor")
@@ -315,11 +304,9 @@ def adicionar_despesa():
     conn.close()
     return jsonify({"mensagem": "Despesa criada"})
 
-
 @app.route("/despesas/<int:id>", methods=["PUT"])
 @login_obrigatorio
 def editar_despesa(id):
-    # ✅ CORREÇÃO 4: Adicionado usuario_id no WHERE para segurança
     usuario_id = get_usuario()
     data = request.json or {}
 
@@ -348,7 +335,6 @@ def editar_despesa(id):
     if not permite:
         parcelas = 1
 
-    # ✅ CORREÇÃO 4: WHERE agora inclui usuario_id
     cur.execute("""
         UPDATE despesas
         SET descricao=%s,
@@ -374,7 +360,6 @@ def editar_despesa(id):
     conn.close()
     return jsonify({"mensagem": "Despesa atualizada"})
 
-
 @app.route("/despesas/<int:id>", methods=["DELETE"])
 @login_obrigatorio
 def excluir_despesa(id):
@@ -387,8 +372,23 @@ def excluir_despesa(id):
     conn.close()
     return jsonify({"mensagem": "Despesa excluída"})
 
-
 # TIPO DE DESPESA
+
+@app.route("/tipos", methods=["GET"])
+@login_obrigatorio
+def listar_tipos():
+    usuario_id = get_usuario()
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, nome
+        FROM tipos_despesa
+        WHERE usuario_id = %s
+    """, (usuario_id,))
+    tipos = [{"id": row[0], "nome": row[1]} for row in cur.fetchall()]
+    cur.close()
+    conn.close()
+    return jsonify(tipos)
 
 @app.route("/tipos", methods=["POST"])
 @login_obrigatorio
@@ -408,25 +408,50 @@ def criar_tipo():
     conn.close()
     return jsonify({"mensagem": "Tipo criado"})
 
+# FORMAS DE PAGAMENTO
 
-@app.route("/tipos", methods=["GET"])
+@app.route("/formas-pagamento", methods=["GET"])
 @login_obrigatorio
-def listar_tipos():
+def listar_formas_pagamento():
     usuario_id = get_usuario()
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("""
-        SELECT id, nome
-        FROM tipos_despesa
+        SELECT id, nome, permite_parcelamento, dia_fechamento
+        FROM formas_pagamento
         WHERE usuario_id = %s
+        ORDER BY nome
     """, (usuario_id,))
-    tipos = [{"id": row[0], "nome": row[1]} for row in cur.fetchall()]
+    dados = cur.fetchall()
     cur.close()
     conn.close()
-    return jsonify(tipos)
+    return jsonify([
+        {"id": d[0], "nome": d[1], "permite_parcelamento": d[2], "dia_fechamento": d[3]}
+        for d in dados
+    ])
 
+@app.route("/formas-pagamento/<int:id>", methods=["GET"])
+@login_obrigatorio
+def obter_forma_pagamento(id):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT id, nome, permite_parcelamento, dia_fechamento FROM formas_pagamento WHERE id=%s",
+        (id,)
+    )
+    d = cur.fetchone()
+    cur.close()
+    conn.close()
 
-# FORMAS DE PAGAMENTO
+    if not d:
+        return jsonify({"erro": "Forma não encontrada"}), 404
+
+    return jsonify({
+        "id": d[0],
+        "nome": d[1],
+        "permite_parcelamento": d[2],
+        "dia_fechamento": d[3]
+    })
 
 @app.route("/formas-pagamento", methods=["POST"])
 @login_obrigatorio
@@ -462,52 +487,6 @@ def criar_forma_pagamento():
     cur.close()
     conn.close()
     return jsonify({"mensagem": "Forma de pagamento criada"})
-
-
-@app.route("/formas-pagamento", methods=["GET"])
-@login_obrigatorio
-def listar_formas_pagamento():
-    usuario_id = get_usuario()
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT id, nome, permite_parcelamento, dia_fechamento
-        FROM formas_pagamento
-        WHERE usuario_id = %s
-        ORDER BY nome
-    """, (usuario_id,))
-    dados = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify([
-        {"id": d[0], "nome": d[1], "permite_parcelamento": d[2], "dia_fechamento": d[3]}
-        for d in dados
-    ])
-
-
-@app.route("/formas-pagamento/<int:id>", methods=["GET"])
-@login_obrigatorio
-def obter_forma_pagamento(id):
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT id, nome, permite_parcelamento, dia_fechamento FROM formas_pagamento WHERE id=%s",
-        (id,)
-    )
-    d = cur.fetchone()
-    cur.close()
-    conn.close()
-
-    if not d:
-        return jsonify({"erro": "Forma não encontrada"}), 404
-
-    return jsonify({
-        "id": d[0],
-        "nome": d[1],
-        "permite_parcelamento": d[2],
-        "dia_fechamento": d[3]
-    })
-
 
 @app.route("/formas-pagamento/<int:id>", methods=["PUT"])
 @login_obrigatorio
@@ -550,60 +529,7 @@ def excluir_forma(id):
     conn.close()
     return jsonify({"mensagem": "Forma excluída"})
 
-
 # LIMITES BANCÁRIOS
-
-@app.route("/limites", methods=["POST"])
-@login_obrigatorio
-def criar_limite():
-    usuario_id = get_usuario()
-    data = request.json or {}
-
-    forma_pagamento_id = data.get("forma_pagamento_id")
-    valor = data.get("valor")
-
-    if not forma_pagamento_id or valor is None:
-        return jsonify({"erro": "Campos obrigatórios: forma_pagamento_id e valor"}), 400
-
-    conn = get_conn()
-    cur = conn.cursor()
-
-    # 🔥 GARANTE QUE A FORMA É DO USUÁRIO
-    cur.execute("""
-        SELECT id FROM formas_pagamento
-        WHERE id = %s AND usuario_id = %s
-    """, (forma_pagamento_id, usuario_id))
-
-    if not cur.fetchone():
-        cur.close()
-        conn.close()
-        return jsonify({"erro": "Forma de pagamento inválida"}), 403
-
-    # 🔥 AGORA VERIFICA LIMITE POR USUÁRIO
-    cur.execute("""
-        SELECT id FROM limites
-        WHERE forma_pagamento_id = %s AND usuario_id = %s
-    """, (forma_pagamento_id, usuario_id))
-
-    existente = cur.fetchone()
-
-    if existente:
-        cur.execute("""
-            UPDATE limites
-            SET valor = %s
-            WHERE forma_pagamento_id = %s AND usuario_id = %s
-        """, (valor, forma_pagamento_id, usuario_id))
-    else:
-        cur.execute("""
-            INSERT INTO limites (forma_pagamento_id, valor, usuario_id)
-            VALUES (%s, %s, %s)
-        """, (forma_pagamento_id, valor, usuario_id))
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return jsonify({"mensagem": "Limite salvo"})
 
 @app.route("/limites/mensal", methods=["GET"])
 @login_obrigatorio
@@ -613,7 +539,6 @@ def calcular_limites_mensais():
     conn = get_conn()
     cur = conn.cursor()
 
-    # 🔥 FILTRO POR USUÁRIO
     cur.execute("""
         SELECT f.id, f.nome, l.valor AS limite, f.dia_fechamento
         FROM limites l
@@ -643,7 +568,6 @@ def calcular_limites_mensais():
 
         fim = inicio + relativedelta(months=1)
 
-        # 🔥 FILTRO POR USUÁRIO AQUI TAMBÉM
         cur.execute("""
             SELECT COALESCE(SUM(valor), 0)
             FROM despesas
@@ -667,12 +591,61 @@ def calcular_limites_mensais():
 
     return jsonify(resposta)
 
+@app.route("/limites", methods=["POST"])
+@login_obrigatorio
+def criar_limite():
+    usuario_id = get_usuario()
+    data = request.json or {}
+
+    forma_pagamento_id = data.get("forma_pagamento_id")
+    valor = data.get("valor")
+
+    if not forma_pagamento_id or valor is None:
+        return jsonify({"erro": "Campos obrigatórios: forma_pagamento_id e valor"}), 400
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id FROM formas_pagamento
+        WHERE id = %s AND usuario_id = %s
+    """, (forma_pagamento_id, usuario_id))
+
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return jsonify({"erro": "Forma de pagamento inválida"}), 403
+
+    cur.execute("""
+        SELECT id FROM limites
+        WHERE forma_pagamento_id = %s AND usuario_id = %s
+    """, (forma_pagamento_id, usuario_id))
+
+    existente = cur.fetchone()
+
+    if existente:
+        cur.execute("""
+            UPDATE limites
+            SET valor = %s
+            WHERE forma_pagamento_id = %s AND usuario_id = %s
+        """, (valor, forma_pagamento_id, usuario_id))
+    else:
+        cur.execute("""
+            INSERT INTO limites (forma_pagamento_id, valor, usuario_id)
+            VALUES (%s, %s, %s)
+        """, (forma_pagamento_id, valor, usuario_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"mensagem": "Limite salvo"})
+
 # GRÁFICOS
 
 @app.route("/grafico/resumo")
 @login_obrigatorio
 def grafico_resumo():
-    # ✅ CORREÇÃO 7: Filtro por usuario_id
     usuario_id = get_usuario()
     mes = request.args.get("mes")
 
@@ -700,11 +673,9 @@ def grafico_resumo():
         "despesas": float(despesas)
     })
 
-
 @app.route("/grafico/despesas-mensais")
 @login_obrigatorio
 def grafico_mensal():
-    # ✅ CORREÇÃO 7: Filtro por usuario_id
     usuario_id = get_usuario()
     ano = request.args.get("ano")
 
@@ -737,11 +708,9 @@ def grafico_mensal():
         "valores": [float(d[1]) for d in dados]
     })
 
-
 @app.route("/grafico/por-tipo")
 @login_obrigatorio
 def grafico_tipo():
-    # ✅ CORREÇÃO 7: Filtro por usuario_id
     usuario_id = get_usuario()
     mes = request.args.get("mes")
 
@@ -772,11 +741,9 @@ def grafico_tipo():
         "valores": [float(d[1]) for d in dados]
     })
 
-
 @app.route("/grafico/por-forma")
 @login_obrigatorio
 def grafico_forma():
-    # ✅ CORREÇÃO 7: Filtro por usuario_id
     usuario_id = get_usuario()
     mes = request.args.get("mes")
 
@@ -806,7 +773,6 @@ def grafico_forma():
         "labels": [d[0] for d in dados],
         "valores": [float(d[1]) for d in dados]
     })
-
 
 # FATURAS
 
@@ -864,7 +830,6 @@ def calcular_faturas():
         "proxima_fatura": proxima_fatura
     })
 
-
 @app.route("/faturas/detalhes")
 @login_obrigatorio
 def detalhes_fatura():
@@ -905,7 +870,6 @@ def detalhes_fatura():
     cur.close()
     conn.close()
     return jsonify(lista)
-
 
 @app.route("/faturas/proximas")
 @login_obrigatorio
@@ -960,7 +924,6 @@ def listar_proximas_faturas():
     conn.close()
     return jsonify({"proxima": lista_proxima, "futuro": lista_futuro})
 
-
 @app.route("/faturas/futuro")
 @login_obrigatorio
 def faturas_futuro():
@@ -1007,7 +970,6 @@ def faturas_futuro():
     cur.close()
     conn.close()
     return jsonify(faturas_por_mes)
-
 
 # ================= INIT =================
 
