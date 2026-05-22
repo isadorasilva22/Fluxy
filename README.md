@@ -1,6 +1,6 @@
 # Fluxy
 
-Aplicação web simples para controle financeiro pessoal, permitindo o registro de receitas e despesas, cálculo automático de saldo e visualização completa dos lançamentos.
+Aplicação web simples para controle financeiro pessoal, permitindo o registro de receitas e despesas, cálculo automático de saldo e limite disponível, visualização completa dos lançamentos, disponibilização de gráficos automáticos de despesas e receitas e resumo de faturas.
 
 ---
 
@@ -14,12 +14,17 @@ A proposta é oferecer uma interface amigável, leve e intuitiva para organizaç
 
 ## ✨ Funcionalidades
 
+- ✔ Resumo orçamentário mensal
 - ✔ Cadastro de receitas
 - ✔ Cadastro de despesas
 - ✔ Cálculo automático de:
   - Total de receitas
   - Total de despesas
   - Saldo disponível
+  - Limite disponível
+- ✔ Página dedicada para cadastro de tipos de despesas, formas de pagamento e limites bancários
+- ✔ Página dedicada para visualização de gráficos variados
+- ✔ Página dedicada para visualização de detalhes da fatura atual e de próximas faturas 
 - ✔ Página dedicada para visualização de todos os registros
 ---
 
@@ -27,17 +32,28 @@ A proposta é oferecer uma interface amigável, leve e intuitiva para organizaç
 
 📁 projeto
 │
-├── index.html (tela inicial / home)
-├── controle.html (cadastro e resumo financeiro)
-├── registros.html (listagem completa)
-├──css
-|   ├── index.css 
-|   ├── controle.css 
-|   └── registros.css
-├──js
-|   ├── controle.js 
-|   └── registros.js
-├──view
-|   ├── home.png
-|   ├── controle.png
-|   └── registros.png
+├──static
+|   ├──css
+|       ├── controle.css
+|       ├── index.css 
+|       ├── login.css 
+|       ├── registros.css
+|   ├──js
+|       ├── controle.js 
+|       ├── registros.js
+|   ├──src
+|       ├── cadastro.png
+|       ├── controle.png
+|       ├── despesas.png
+|       ├── home.png
+|       ├── login.png
+|
+├──templates
+|   ├── cadastro.html (cadastro de usuário)
+|   ├── controle.html (cadastro e resumo financeiro)
+|   ├── index.html (tela inicial / home)
+|   ├── login.html (login do usuário)
+|   ├── registros.html (listagem completa)
+|
+├──app.py
+├──README.md
