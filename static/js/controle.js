@@ -96,30 +96,37 @@ async function verificarLogin() {
 
 verificarLogin();
 
-function trocarAba(nomeAba, botao) {
-    const abas = document.querySelectorAll(".aba-conteudo");
-    abas.forEach(aba => aba.classList.remove("ativa"));
+function trocarAba(abaId, botao) {
 
-    const botoes = document.querySelectorAll(".aba-btn");
-    botoes.forEach(btn => btn.classList.remove("ativa"));
+    // Remove ativo dos botões
+    document.querySelectorAll(".aba-btn").forEach(btn => {
+        btn.classList.remove("ativa");
+    });
 
-    const abaSelecionada = document.getElementById(`aba-${nomeAba}`);
-    if (abaSelecionada) {
-        abaSelecionada.classList.add("ativa");
-    }
+    // Esconde conteúdos
+    document.querySelectorAll(".aba-conteudo").forEach(aba => {
+        aba.classList.remove("ativa");
+    });
 
-    if (nomeAba === "graficos") {
+    // Ativa botão clicado
+    botao.classList.add("ativa");
+
+    // Mostra aba correta
+    document.getElementById(`aba-${abaId}`).classList.add("ativa");
+
+    // ===== CARREGAMENTOS =====
+
+    if (abaId === "graficos") {
         carregarResumo();
         carregarMensal();
         carregarTipo();
         carregarForma();
     }
 
-    if (nomeAba === "faturas") {
+    if (abaId === "faturas") {
         carregarFaturas();
         carregarDetalhesFatura();
     }
-
 }
 
 // ================= MODAL FORMAS PAGAMENTOS =================
@@ -158,7 +165,7 @@ async function renderizarFormasModal() {
             <td>${f.nome}</td>
             <td>${f.permite_parcelamento ? "Sim" : "Não"}</td>
             <td>${f.dia_fechamento || "-"}</td>
-            <td>
+            <td class="acoes">
                 <button onclick="editarForma(${f.id})">✏️</button>
                 <button onclick="excluirForma(${f.id})">🗑️</button>
             </td>
@@ -299,6 +306,117 @@ async function carregarTipos() {
     });
 }
 
+// ================= MODAL TIPOS =================
+
+const btnVerTipos = document.getElementById("btn-ver-tipos");
+const modalTipos = document.getElementById("modal-tipos");
+const listaTipos = document.getElementById("lista-tipos");
+
+const modalEditarTipo = document.getElementById("modal-editar-tipo");
+const inputEditarTipo = document.getElementById("edit-tipo-nome");
+
+let tipoEditandoId = null;
+
+if (btnVerTipos) {
+    btnVerTipos.onclick = async () => {
+        await renderizarTiposModal();
+        modalTipos.classList.add("ativo");
+    };
+}
+
+document.getElementById("fechar-modal-tipos").onclick = () => {
+    modalTipos.classList.remove("ativo");
+};
+
+async function renderizarTiposModal() {
+
+    const tipos = await obterTipos();
+
+    listaTipos.innerHTML = "";
+
+    tipos.forEach(tipo => {
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${tipo.nome}</td>
+
+            <td class="acoes">
+                <button onclick="editarTipo(${tipo.id})">✏️</button>
+                <button onclick="excluirTipo(${tipo.id})">🗑️</button>
+            </td>
+        `;
+
+        listaTipos.appendChild(tr);
+    });
+}
+
+async function editarTipo(id) {
+
+    const tipos = await obterTipos();
+
+    const tipo = tipos.find(t => t.id === id);
+
+    if (!tipo) return;
+
+    tipoEditandoId = id;
+
+    inputEditarTipo.value = tipo.nome;
+
+    modalEditarTipo.classList.add("ativo");
+}
+
+document.getElementById("btn-salvar-tipo").onclick = async () => {
+
+    const nome = inputEditarTipo.value;
+
+    if (!nome) {
+        mostrarToast("Digite um nome válido", "warning");
+        return;
+    }
+
+    await fetch(`/tipos/${tipoEditandoId}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ nome })
+    });
+
+    mostrarToast("Tipo atualizado!", "success");
+
+    modalEditarTipo.classList.remove("ativo");
+
+    await renderizarTiposModal();
+    await carregarTipos();
+};
+
+async function excluirTipo(id) {
+
+    if (!confirm("Deseja excluir este tipo?")) return;
+
+    await fetch(`/tipos/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+
+    mostrarToast("Tipo excluído!", "success");
+
+    await renderizarTiposModal();
+    await carregarTipos();
+}
+
+document.getElementById("btn-cancelar-tipo").onclick = () => {
+    modalEditarTipo.classList.remove("ativo");
+};
+
+modalEditarTipo.addEventListener("click", (e) => {
+    if (e.target === modalEditarTipo) {
+        modalEditarTipo.classList.remove("ativo");
+    }
+});
+
 // ================= FORMAS =================
 
 const formForma = document.getElementById("form-forma");
@@ -378,6 +496,115 @@ async function carregarFormasPagamento() {
     atualizarParcelas(null);
 }
 
+// ================= LIMITES =================
+
+async function obterLimites() {
+    const res = await fetch("/limites", {
+        credentials: "include"
+    });
+
+    return await res.json();
+}
+
+// ================= MODAL LIMITES =================
+
+const btnVerLimites = document.getElementById("btn-ver-limites");
+const modalLimites = document.getElementById("modal-limites");
+const listaLimites = document.getElementById("lista-limites");
+
+const modalEditarLimite = document.getElementById("modal-editar-limite");
+const inputEditarValorLimite = document.getElementById("edit-limite-valor");
+
+let limiteEditandoId = null;
+
+if (btnVerLimites) {
+    btnVerLimites.onclick = async () => {
+        await renderizarLimitesModal();
+        modalLimites.classList.add("ativo");
+    };
+}
+
+document.getElementById("fechar-modal-limites").onclick = () => {
+    modalLimites.classList.remove("ativo");
+};
+
+async function renderizarLimitesModal() {
+
+    const limites = await obterLimites();
+
+    listaLimites.innerHTML = "";
+
+    limites.forEach(item => {
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${item.forma}</td>
+            <td>${formatarMoeda(item.valor)}</td>
+
+            <td class="acoes">
+                <button onclick="editarLimite(${item.id}, ${item.valor})">✏️</button>
+                <button onclick="excluirLimite(${item.id})">🗑️</button>
+            </td>
+        `;
+
+        listaLimites.appendChild(tr);
+    });
+}
+
+function editarLimite(id, valor) {
+
+    limiteEditandoId = id;
+
+    inputEditarValorLimite.value = valor;
+
+    modalEditarLimite.classList.add("ativo");
+}
+
+document.getElementById("btn-salvar-limite").onclick = async () => {
+
+    const valor = validarValor(inputEditarValorLimite.value);
+
+    if (valor === null) {
+        mostrarToast("Valor inválido", "warning");
+        return;
+    }
+
+    await fetch(`/limites/${limiteEditandoId}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ valor })
+    });
+
+    mostrarToast("Limite atualizado!", "success");
+
+    modalEditarLimite.classList.remove("ativo");
+
+    await renderizarLimitesModal();
+    await renderizarLimites();
+};
+
+async function excluirLimite(id) {
+
+    if (!confirm("Deseja excluir este limite?")) return;
+
+    await fetch(`/limites/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+
+    mostrarToast("Limite excluído!", "success");
+
+    await renderizarLimitesModal();
+    await renderizarLimites();
+}
+
+document.getElementById("btn-cancelar-limite").onclick = () => {
+    modalEditarLimite.classList.remove("ativo");
+};
 // ================= PARCELAS =================
 
 function atualizarParcelas(forma) {
@@ -390,6 +617,12 @@ function atualizarParcelas(forma) {
         grupo.style.display = "none";
     }
 }
+
+modalEditarLimite.addEventListener("click", (e) => {
+    if (e.target === modalEditarLimite) {
+        modalEditarLimite.classList.remove("ativo");
+    }
+});
 
 const selectForma = document.getElementById("forma-pagamento");
 
@@ -645,23 +878,86 @@ function renderChart(id, tipo, labels, dados) {
 
     if (!ctx) return;
 
-    // Se já existir um gráfico nesse canvas, destrói antes
+    // Destrói gráfico anterior
     if (charts[id]) {
         charts[id].destroy();
     }
 
+    // Paleta Fluxy
+    const cores = [
+        '#f8c8dc', // rosa pastel
+        '#f7d774', // amarelo
+        '#b8e0c1', // verde pastel
+        '#cdb4db', // lilás
+        '#a0c4ff', // azul pastel
+        '#ffd6a5', // pêssego
+        '#ffb4a2', // coral claro
+        '#bde0fe'  // azul bebê
+    ];
+
+    const bordas = [
+        '#f4a9c5',
+        '#f4c542',
+        '#8fc9a3',
+        '#b497d6',
+        '#7fb3ff',
+        '#ffbe7a',
+        '#ff9b85',
+        '#93c5fd'
+    ];
+
     charts[id] = new Chart(ctx, {
         type: tipo,
+
         data: {
             labels: labels,
+
             datasets: [{
                 label: "Valores",
-                data: dados
+                data: dados,
+
+                backgroundColor: cores,
+                borderColor: bordas,
+                borderWidth: 2,
+
+                borderRadius: tipo === "bar" ? 10 : 0
             }]
         },
+
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#6b4c1e',
+                        font: {
+                            size: 13
+                        }
+                    }
+                }
+            },
+
+            scales: tipo === "bar" ? {
+                y: {
+                    ticks: {
+                        color: '#6b4c1e'
+                    },
+                    grid: {
+                        color: '#f3e6d0'
+                    }
+                },
+
+                x: {
+                    ticks: {
+                        color: '#6b4c1e'
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            } : {}
         }
     });
 }

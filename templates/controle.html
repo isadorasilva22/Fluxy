@@ -115,9 +115,22 @@
 
     <section class="card">
         <h2>Cadastro de Tipos de Despesa</h2>
+
         <form id="form-tipo">
-            <input type="text" id="novo-tipo" placeholder="Ex: Alimentação, Transporte..." required>
-            <button type="submit">Salvar Tipo</button>
+            <input type="text"
+                id="novo-tipo"
+                placeholder="Ex: Alimentação, Transporte..."
+                required>
+
+            <div class="acoes-form">
+                <button type="submit">
+                    Salvar Tipo
+                </button>
+
+                <button type="button" id="btn-ver-tipos">
+                    Ver Tipos
+                </button>
+            </div>
         </form>
     </section>
 
@@ -135,21 +148,42 @@
                     <input type="number" id="dia-fechamento" placeholder=" (ex: 4)">
                 </label>
             </div>
-            <button type="submit">Salvar</button>
-            <button type="button" id="btn-ver-formas" style="margin-top:10px;">
-                Ver Formas de Pagamento
-            </button>
+            <div class="acoes-form">
+                <button type="submit">Salvar</button>
+
+                <button type="button" id="btn-ver-formas">
+                    Ver Formas de Pagamento
+                </button>
+            </div>
         </form>
     </section>
 
     <section class="card">
         <h2>Definir Limite</h2>
+
         <form id="form-limite">
+
             <select id="forma-limite" required>
-                <option value="" disabled selected>Selecione a forma</option>
+                <option value="" disabled selected>
+                    Selecione a forma
+                </option>
             </select>
-            <input type="text" id="valor-limite" placeholder="Limite" required>
-            <button type="submit">Salvar Limite</button>
+
+            <input type="text"
+                id="valor-limite"
+                placeholder="Limite"
+                required>
+
+            <div class="acoes-form">
+                <button type="submit">
+                    Salvar Limite
+                </button>
+
+                <button type="button" id="btn-ver-limites">
+                    Ver Limites
+                </button>
+            </div>
+
         </form>
     </section>
 
@@ -197,6 +231,101 @@
             <button id="btn-salvar-forma">Salvar</button>
             <button id="btn-cancelar-forma">Cancelar</button>
         </div>
+    </div>
+</div>
+
+<div id="modal-tipos" class="modal">
+    <div class="modal-content">
+
+        <h3>Tipos de Despesa</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody id="lista-tipos"></tbody>
+        </table>
+
+        <button id="fechar-modal-tipos">
+            Fechar
+        </button>
+
+    </div>
+</div>
+
+<div id="modal-editar-tipo" class="modal">
+    <div class="modal-content">
+
+        <h3>Editar Tipo</h3>
+
+        <input type="text"
+               id="edit-tipo-nome"
+               placeholder="Nome do tipo">
+
+        <div style="margin-top:15px;">
+
+            <button id="btn-salvar-tipo">
+                Salvar
+            </button>
+
+            <button id="btn-cancelar-tipo">
+                Cancelar
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+<div id="modal-limites" class="modal">
+    <div class="modal-content">
+
+        <h3>Limites Cadastrados</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Forma</th>
+                    <th>Limite</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody id="lista-limites"></tbody>
+        </table>
+
+        <button id="fechar-modal-limites">
+            Fechar
+        </button>
+
+    </div>
+</div>
+
+<div id="modal-editar-limite" class="modal">
+    <div class="modal-content">
+
+        <h3>Editar Limite</h3>
+
+        <input type="text"
+               id="edit-limite-valor"
+               placeholder="Novo valor">
+
+        <div style="margin-top:15px;">
+
+            <button id="btn-salvar-limite">
+                Salvar
+            </button>
+
+            <button id="btn-cancelar-limite">
+                Cancelar
+            </button>
+
+        </div>
+
     </div>
 </div>
 

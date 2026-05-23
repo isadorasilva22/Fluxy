@@ -408,6 +408,51 @@ def criar_tipo():
     conn.close()
     return jsonify({"mensagem": "Tipo criado"})
 
+@app.route("/tipos/<int:id>", methods=["PUT"])
+@login_obrigatorio
+def editar_tipo(id):
+    usuario_id = get_usuario()
+    data = request.json or {}
+
+    nome = data.get("nome")
+
+    if not nome:
+        return jsonify({"erro": "Nome é obrigatório"}), 400
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE tipos_despesa
+        SET nome = %s
+        WHERE id = %s AND usuario_id = %s
+    """, (nome, id, usuario_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"mensagem": "Tipo atualizado"})
+
+@app.route("/tipos/<int:id>", methods=["DELETE"])
+@login_obrigatorio
+def excluir_tipo(id):
+    usuario_id = get_usuario()
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        DELETE FROM tipos_despesa
+        WHERE id = %s AND usuario_id = %s
+    """, (id, usuario_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"mensagem": "Tipo excluído"})
+
 # FORMAS DE PAGAMENTO
 
 @app.route("/formas-pagamento", methods=["GET"])
@@ -591,6 +636,34 @@ def calcular_limites_mensais():
 
     return jsonify(resposta)
 
+@app.route("/limites", methods=["GET"])
+@login_obrigatorio
+def listar_limites():
+    usuario_id = get_usuario()
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT l.id, l.valor, f.nome, f.id
+        FROM limites l
+        JOIN formas_pagamento f
+            ON f.id = l.forma_pagamento_id
+        WHERE l.usuario_id = %s
+    """, (usuario_id,))
+
+    dados = [{
+        "id": row[0],
+        "valor": float(row[1]),
+        "forma": row[2],
+        "forma_pagamento_id": row[3]
+    } for row in cur.fetchall()]
+
+    cur.close()
+    conn.close()
+
+    return jsonify(dados)
+
 @app.route("/limites", methods=["POST"])
 @login_obrigatorio
 def criar_limite():
@@ -640,6 +713,51 @@ def criar_limite():
     conn.close()
 
     return jsonify({"mensagem": "Limite salvo"})
+
+@app.route("/limites/<int:id>", methods=["PUT"])
+@login_obrigatorio
+def editar_limite(id):
+    usuario_id = get_usuario()
+    data = request.json or {}
+
+    valor = data.get("valor")
+
+    if valor is None:
+        return jsonify({"erro": "Valor obrigatório"}), 400
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE limites
+        SET valor = %s
+        WHERE id = %s AND usuario_id = %s
+    """, (valor, id, usuario_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"mensagem": "Limite atualizado"})
+
+@app.route("/limites/<int:id>", methods=["DELETE"])
+@login_obrigatorio
+def excluir_limite(id):
+    usuario_id = get_usuario()
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        DELETE FROM limites
+        WHERE id = %s AND usuario_id = %s
+    """, (id, usuario_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"mensagem": "Limite excluído"})
 
 # GRÁFICOS
 

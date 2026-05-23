@@ -287,6 +287,34 @@ button:hover {
     transform: translateY(-2px);
 }
 
+.acoes-form {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.acoes-form button {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+}
+
+td.acoes {
+    text-align: center;
+    white-space: nowrap;
+}
+
+td.acoes button {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin: 0 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
 /* ================= RESPONSIVIDADE ================= */
 
 @media (max-width: 768px) {
@@ -343,7 +371,8 @@ button:hover {
 }
 
 .grafico-card {
-    background: white;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(20px);
     border-radius: 16px;
     padding: 20px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.05);
@@ -436,6 +465,23 @@ button:hover {
     justify-content: space-between;
     padding: 8px 0;
     border-bottom: 1px solid #eee;
+}
+
+.modal table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.modal th,
+.modal td {
+    padding: 12px;
+    text-align: center;
+}
+
+.modal th {
+    color: #000;
+    font-size: 1.1rem;
 }
 
 #lista-futuro h4 {
